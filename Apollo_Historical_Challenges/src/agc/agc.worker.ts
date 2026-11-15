@@ -29,7 +29,7 @@ async function handle(message: WorkerRequest): Promise<void> {
   if (message.type === 'start') { wasmUrl = message.wasmUrl; romUrl = message.romUrl; romName = message.romName; await start(); return; }
   if (!engine) return;
   if (message.type === 'pause') { running = !message.paused; return; }
-  if (message.type === 'restart') { await restart(); post({ type: 'restarted' }); return; }
+  if (message.type === 'restart') { await restart(); post({ type: 'restarted' }); tick(10_000); return; }
   writeKey(message.key, message.down);
   tick(600);
 }
@@ -70,7 +70,7 @@ async function loadRom(): Promise<void> {
   engine.set_fixed(pointer); engine.free(pointer); engine.cpu_reset(); cycle = 0;
 }
 
-async function restart(): Promise<void> { await loadRom(); tick(10_000); }
+async function restart(): Promise<void> { await loadRom(); }
 
 function writeKey(key: AgcKey, down: boolean): void {
   if (key === 'PRO') { engine.packet_write(0o32, down ? 1 << 13 : 0); return; }
