@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "acquired_date": "2026-11-15",
+  "sources": [
+    {
+      "id": "virtualagc",
+      "repository": "https://github.com/virtualagc/virtualagc",
+      "commit": "8dd8c83730b5dd851920bc4baba32d572942d9d1",
+      "path": "assets/software/virtualagc",
+      "scope": "sparse source snapshot; .git excluded from delivery",
+      "identity_files": [
+        {
+          "path": "assets/software/virtualagc/LM131R1/MAIN.agc",
+          "bytes": 5581,
+          "sha256": "315ffaa48d1230fbfaeca4621ff0168d3606c129f9c3b743809263b67ca4ca08"
+        },
+        {
+          "path": "assets/software/virtualagc/Manche72R3/MAIN.agc",
+          "bytes": 2887,
+          "sha256": "85b0193e3eb3642b6cb270ef14824ce16275e094a813f496ca01eb17a884fd7e"
+        },
+        {
+          "path": "assets/software/virtualagc/yaAGC/agc_engine.c",
+          "bytes": 120098,
+          "sha256": "9c59728cdd968503caaaafe50a18ab3ed841f6176da3299c137f3a6a158fcbef"
+        },
+        {
+          "path": "assets/software/virtualagc/yaYUL/yaYUL.c",
+          "bytes": 32007,
+          "sha256": "82e9ddb76e22fcfd48c4f22245e7b2d7299f10b4293f62e9fbb16c36d2cda6b2"
+        }
+      ]
+    },
+    {
+      "id": "webAGC",
+      "repository": "https://github.com/michaelfranzl/webAGC",
+      "commit": "0575ea7a1231e3948bae7d2c22a6ac146da0c38d",
+      "path": "assets/software/webAGC",
+      "scope": "sparse source snapshot; .git excluded from delivery",
+      "identity_files": [
+        {
+          "path": "assets/software/webAGC/README.md",
+          "bytes": 621,
+          "sha256": "a163586812f7487e76cca6ba1c7269194d49461ca9c1ba23d6f29b314ba45390"
+        },
+        {
+          "path": "assets/software/webAGC/src/webAGC.js",
+          "bytes": 5482,
+          "sha256": "83a973cf9e63bcc7e9212d350c0a5768b93fdb7060d38a9966c2a41eabdb2501"
+        }
+      ]
+    },
+    {
+      "id": "webAGC-engine-source",
+      "repository": "https://github.com/michaelfranzl/virtualagc",
+      "commit": "ddc65e7bed41f1301921b934fcbaaee93db99dda",
+      "path": "assets/software/webAGC-engine-source",
+      "scope": "sparse source snapshot; .git excluded from delivery",
+      "identity_files": [
+        {
+          "path": "assets/software/webAGC-engine-source/yaAGC/wasm.c",
+          "bytes": 5292,
+          "sha256": "0aecff185f8307f3bb64d7aa2f0fc0284c91d837a50a1d79aeebed1681623a83"
+        },
+        {
+          "path": "assets/software/webAGC-engine-source/yaAGC/Makefile",
+          "bytes": 9712,
+          "sha256": "c939e71fe15c42a520f9d67b521c7992dd2fab571688d66fb3852822c113c1ce"
+        },
+        {
+          "path": "assets/software/webAGC-engine-source/yaAGC/agc_engine.c",
+          "bytes": 116834,
+          "sha256": "ea084c69ba75737bf872f2e807826e89af83568c48bf01441aabb79fc4417ecf"
+        }
+      ]
+    }
+  ],
+  "binary_artifacts": [
+    {
+      "path": "assets/software/virtualagc/LM131R1/LM131R1.bin",
+      "bytes": 73728,
+      "sha256": "ae4f9e51ac9491c3da6462233936daeffc16277cd302c43a70b8459ebcd6cca5"
+    },
+    {
+      "path": "assets/software/virtualagc/Manche72R3/Manche72R3.bin",
+      "bytes": 73728,
+      "sha256": "420548f25ce95c2ab36c4c7c0505dc17c3ab77840eb9d5f9a5aecc968bb40b02"
+    },
+    {
+      "path": "assets/software/webAGC/src/yaAGC.wasm",
+      "bytes": 132617,
+      "sha256": "a595f3ad3cc6833638b49879e2d41149a7327b1a10577828f50466d6c7747f14"
+    }
+  ],
+  "wasm_reported_version": "2020-12-24 ddc65e7be",
+  "wasm_corresponding_source_commit": "ddc65e7bed41f1301921b934fcbaaee93db99dda",
+  "checks": {
+    "LM131R1": [
+      "upstream bank checks",
+      "byte equality with Luminary131PlusLM131R1ModuleDump.bin"
+    ],
+    "Manche72R3": [
+      "upstream bank checks"
+    ],
+    "wasm": [
+      "module imports/exports inspected",
+      "both Apollo 13 ROMs produce output in headless smoke",
+      "two fresh-instance runs agree per ROM"
+    ]
+  },
+  "not_verified": [
+    "browser operation",
+    "native parity",
+    "complete checkpoint serialization",
+    "historical initial state",
+    "reproducible WASM rebuild"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "dsky-qualification",
+  "title": "DSKY Qualification",
+  "kind": "training",
+  "fidelity": "design-choice",
+  "description": "A modern input qualification exercise using real LM131R1 computer responses. It is not an Apollo mission reconstruction.",
+  "rom": "LM131R1",
+  "release": true
+}
