@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-15",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "gcc": "gcc (Debian 14.2.0-19) 14.2.0",
+  "make": "GNU Make 4.4.1",
+  "node": "v24.22.1",
+  "tested": [
+    "flight source assembly and upstream checks",
+    "asset hashes",
+    "headless bundled WASM loading and fresh-instance deterministic outputs"
+  ],
+  "not_tested": [
+    "browser rendering or input",
+    "native parity",
+    "WASM rebuild",
+    "historical state or audio alignment"
+  ]
+}

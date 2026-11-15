@@ -1,0 +1,7 @@
+make: Entering directory '/workspace/scratch/4eae12220880/apollo_historical_challenges/assets/software/virtualagc/Manche72R3'
+../yaYUL/yaYUL --unpound-page --parity MAIN.agc >MAIN.agc.lst
+mv -f MAIN.agc.bin Manche72R3.bin
+mv MAIN.agc.lst Manche72R3.lst
+mv MAIN.agc.symtab Manche72R3.symtab
+../Tools/check_buggers.py Manche72R3.bin Manche72R3.buggers
+make: Leaving directory '/workspace/scratch/4eae12220880/apollo_historical_challenges/assets/software/virtualagc/Manche72R3'

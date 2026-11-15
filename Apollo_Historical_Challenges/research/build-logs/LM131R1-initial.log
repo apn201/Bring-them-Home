@@ -1,0 +1,10 @@
+make: Entering directory '/workspace/scratch/4eae12220880/apollo_historical_challenges/assets/software/virtualagc/LM131R1'
+../yaYUL/yaYUL --unpound-page --parity MAIN.agc >MAIN.agc.lst
+ERASABLE_ASSIGNMENTS.agc:993: Warning: May overflow memory bank.
+ERASABLE_ASSIGNMENTS.agc:1264: Warning: Next code may overflow storage.
+mv -f MAIN.agc.bin LM131R1.bin
+mv MAIN.agc.lst LM131R1.lst
+mv MAIN.agc.symtab LM131R1.symtab
+../Tools/check_buggers.py LM131R1.bin LM131R1.buggers
+diff -q LM131R1.bin Luminary131PlusLM131R1ModuleDump.bin
+make: Leaving directory '/workspace/scratch/4eae12220880/apollo_historical_challenges/assets/software/virtualagc/LM131R1'

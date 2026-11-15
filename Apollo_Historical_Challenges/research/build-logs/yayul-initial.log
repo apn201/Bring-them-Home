@@ -1,0 +1,42 @@
+make: Entering directory '/workspace/scratch/4eae12220880/apollo_historical_challenges/assets/software/virtualagc/yaYUL'
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o GetOctOrDec.o GetOctOrDec.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o IncPc.o IncPc.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o Parse2CADR.o Parse2CADR.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o Parse2DEC.o Parse2DEC.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o Parse2FCADR.o Parse2FCADR.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseBANK.o ParseBANK.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseBBCON.o ParseBBCON.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseBLOCK.o ParseBLOCK.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseCADR.o ParseCADR.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseCHECKequals.o ParseCHECKequals.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseEBANKEquals.o ParseEBANKEquals.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseECADR.o ParseECADR.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseEQUALS.o ParseEQUALS.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseERASE.o ParseERASE.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseEqMinus.o ParseEqMinus.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseEqualsECADR.o ParseEqualsECADR.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseGENADR.o ParseGENADR.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseGeneral.o ParseGeneral.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseINDEX.o ParseINDEX.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseInterpretiveOperand.o ParseInterpretiveOperand.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseOCT.o ParseOCT.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseSBANKEquals.o ParseSBANKEquals.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseSETLOC.o ParseSETLOC.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseST.o ParseST.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o ParseXCADR.o ParseXCADR.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o Pass.o Pass.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o PseudoToSegmented.o PseudoToSegmented.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o SymbolPass.o SymbolPass.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o SymbolTable.o SymbolTable.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o Utilities.o Utilities.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o strcmpEBCDIC.o strcmpEBCDIC.c
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o yaYUL.o yaYUL.c
+yaYUL.c: In function ‘main’:
+yaYUL.c:353:62: error: expected ‘)’ before numeric constant
+  353 |   printf("Apollo Guidance Computer (AGC) assembler, version " NVER
+      |         ~                                                    ^
+      |                                                              )
+gcc  -g -O0 -DNVER=20261115 -DINSTALLDIR=/usr/local -Wall -c -o yul2agc.o yul2agc.c
+make: *** [Makefile:88: yaYUL.o] Error 1
+make: *** Waiting for unfinished jobs....
+make: Leaving directory '/workspace/scratch/4eae12220880/apollo_historical_challenges/assets/software/virtualagc/yaYUL'

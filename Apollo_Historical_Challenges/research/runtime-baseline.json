@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-15",
+  "workspaceToolchain": {
+    "node": "v24.14.1",
+    "npm": "9.8.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.8",
+    "vitest": "4.0.18"
+  },
+  "runtime": {
+    "rom": "LM131R1",
+    "romSha256": "ae4f9e51ac9491c3da6462233936daeffc16277cd302c43a70b8459ebcd6cca5",
+    "wasmVersion": "2020-12-24 ddc65e7be",
+    "wasmSha256": "a595f3ad3cc6833638b49879e2d41149a7327b1a10577828f50466d6c7747f14"
+  },
+  "checks": [
+    "runtime asset hashes",
+    "content schema skeleton",
+    "input key-code unit tests",
+    "production build",
+    "headless supplied WASM fresh-instance repeat probe"
+  ],
+  "notChecks": [
+    "browser/device smoke test",
+    "native engine parity",
+    "complete state serialization",
+    "historical scenario fidelity"
+  ]
+}

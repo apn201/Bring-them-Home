@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "production_ready": false,
+  "evidence": [
+    {
+      "id": "coarse-operation",
+      "sourceAssetId": "air-ground-transcript",
+      "locator": {
+        "pdfPage": 189,
+        "printedPage": "182",
+        "get": "058:02:26"
+      },
+      "claim": "V41 N20 is mentioned with the first coarse angle",
+      "status": "verified",
+      "verification": "source scan visually inspected; audio not yet aligned"
+    },
+    {
+      "id": "cm-angles",
+      "sourceAssetId": "air-ground-transcript",
+      "locator": {
+        "pdfPage": 190,
+        "printedPage": "183",
+        "get": "058:04:03"
+      },
+      "claim": "CM angle candidates 355.57/167.78/351.87 and roll calibration -2 degrees",
+      "status": "verified",
+      "verification": "source scan visually inspected; audio not yet aligned"
+    },
+    {
+      "id": "act30-transform",
+      "sourceAssetId": "lm-activation-checklist",
+      "locator": {
+        "pdfPage": 48,
+        "printedPage": "ACT 30"
+      },
+      "claim": "O=wrap360(300-CM_O+RC), I=wrap360(180+CM_I), M=wrap360(360-CM_M) for the worksheet configuration",
+      "status": "verified",
+      "verification": "worksheet visually inspected and arithmetic cross-checked; full range restrictions still require review"
+    },
+    {
+      "id": "coarse-format",
+      "sourceAssetId": "lm-gn-dictionary",
+      "locator": {
+        "pdfPage": 75,
+        "printedPage": "PGNS-54"
+      },
+      "claim": "V41 N20 coarse-angle ICDU entry uses .01-degree display units",
+      "status": "verified",
+      "verification": "source scan visually inspected"
+    },
+    {
+      "id": "coarse-audio",
+      "sourceAssetId": "archive-Apollo13Audio",
+      "locator": {
+        "get": "058:02:26",
+        "recordingOffsetSec": null
+      },
+      "claim": "Recording filename and offset for coarse alignment",
+      "status": "unresolved",
+      "verification": "archive metadata only; not production content"
+    },
+    {
+      "id": "fine-scaling",
+      "sourceAssetId": "lm-gn-dictionary",
+      "locator": {},
+      "claim": "Resolve spoken fine-alignment values into N93 DSKY entries; noun table lists .001-degree units",
+      "status": "unresolved",
+      "verification": "text search only; full entry interpretation pending"
+    }
+  ]
+}

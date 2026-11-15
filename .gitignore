@@ -1,0 +1,8 @@
+# Generated browser output and installed packages
+Apollo_Historical_Challenges/node_modules/
+Apollo_Historical_Challenges/dist/
+Apollo_Historical_Challenges/*.tsbuildinfo
+
+# Local editor and operating-system noise
+.DS_Store
+Thumbs.db

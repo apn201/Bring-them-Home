@@ -1,0 +1,88 @@
+{
+  "scope": "headless acquisition smoke only; not G1, not native parity, not historical checkpoint validation",
+  "imports": [
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_close",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_fdstat_get",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_seek",
+      "kind": "function"
+    },
+    {
+      "module": "wasi_snapshot_preview1",
+      "name": "fd_write",
+      "kind": "function"
+    },
+    {
+      "module": "env",
+      "name": "memory",
+      "kind": "memory"
+    }
+  ],
+  "exports": [
+    {
+      "name": "malloc",
+      "kind": "function"
+    },
+    {
+      "name": "free",
+      "kind": "function"
+    },
+    {
+      "name": "get_erasable_ptr",
+      "kind": "function"
+    },
+    {
+      "name": "set_fixed",
+      "kind": "function"
+    },
+    {
+      "name": "cpu_reset",
+      "kind": "function"
+    },
+    {
+      "name": "cpu_step",
+      "kind": "function"
+    },
+    {
+      "name": "packet_write",
+      "kind": "function"
+    },
+    {
+      "name": "packet_read",
+      "kind": "function"
+    },
+    {
+      "name": "version",
+      "kind": "function"
+    }
+  ],
+  "reports": [
+    {
+      "program": "LM131R1",
+      "cyclesRequested": 100000,
+      "freshInstanceRepeatMatches": true,
+      "version": "2020-12-24 ddc65e7be",
+      "eventCount": 190,
+      "outputHash": "d7494d7ee7cf8591f31e9c0d251ee0e673b2968a72f2b9fd53fdd7141fb4123e",
+      "erasableHash": "9e0fda53a3259cc805d87c0171a5562464ac5cbe0b3208041630809d2d15f7ee"
+    },
+    {
+      "program": "Manche72R3",
+      "cyclesRequested": 100000,
+      "freshInstanceRepeatMatches": true,
+      "version": "2020-12-24 ddc65e7be",
+      "eventCount": 146,
+      "outputHash": "ac3e08abb5a71659965366f1304121341a870c31ba6c3c3f18b3db6d31322fe3",
+      "erasableHash": "b1d0d43ed293291fd50419e4d8796aa682a517fa31df973a031c5b36bb0b2c12"
+    }
+  ]
+}

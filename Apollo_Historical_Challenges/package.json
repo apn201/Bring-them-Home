@@ -1,0 +1,29 @@
+{
+  "name": "apollo-historical-challenges",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A browser collection of historically bounded Apollo procedure games.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "assets:verify": "node tools/verify-runtime-assets.mjs",
+    "content:validate": "node tools/validate-content.mjs",
+    "replay:verify": "node tools/verify-replay.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.8",
+    "vitest": "4.0.18"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "webdsky": "1.1.4"
+  }
+}

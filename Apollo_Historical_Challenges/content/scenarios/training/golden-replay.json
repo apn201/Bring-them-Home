@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "scenario": "dsky-qualification",
+  "events": [{ "cycle": 10000, "key": "VERB" }, { "cycle": 10600, "key": "3" }, { "cycle": 11200, "key": "5" }, { "cycle": 11800, "key": "ENTR" }],
+  "note": "Structural fixture only. It is not a historical procedure replay."
+}

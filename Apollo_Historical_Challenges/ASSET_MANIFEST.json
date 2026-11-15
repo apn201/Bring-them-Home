@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "assets": [
+    {
+      "id": "lm-activation-checklist",
+      "path": "assets/documents/77-a13-activation-checklist.pdf",
+      "source_url": "https://apollojournals.org/afj/ap13fj/pdf-hr/77-a13-activation-checklist.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.097340+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "resolved_url": "https://apollojournals.org/afj/ap13fj/pdf-hr/77-a13-activation-checklist.pdf",
+      "status": "downloaded",
+      "bytes": 13706903,
+      "sha256": "4d499fa8817aecfd6471251c43e0e5bccf215c496816c19375b5db92ec1a87c0"
+    },
+    {
+      "id": "lm-padload",
+      "path": "assets/documents/padload_13_lm.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/Documents/padload_13_lm.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.097656+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 19970240,
+      "sha256": "ecd084d55f569af6d86b093d4a633cdff6fca790916062cee8a808f26a63c942"
+    },
+    {
+      "id": "cm-padload",
+      "path": "assets/documents/padload_13_cm.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/Documents/padload_13_cm.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.098448+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 21585336,
+      "sha256": "e072e0b92c16e06f69f3c2d3018a63b40d7cdccb74e214397ff3f171a77aebfd"
+    },
+    {
+      "id": "lm-padload-grumman",
+      "path": "assets/documents/LM7_Pad_loads.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/Documents/LM7_Pad_loads.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.099061+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 1487280,
+      "sha256": "ae581dfa697759ae8836dad85651b01355df4a56eb94b0c2f93e15a1dd0a4ba3"
+    },
+    {
+      "id": "revised-flightplan",
+      "path": "assets/documents/a13-flightplan-54-splash.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/Documents/a13-flightplan-54-splash.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.099369+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 5371869,
+      "sha256": "4ca1ee58d89d723b28ea261b5f65ad8b48c244c8571cc56c6e371c50eed5f8c3"
+    },
+    {
+      "id": "lm-gn-dictionary",
+      "path": "assets/documents/76-a13-gn-dictionary.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/Documents/76-a13-g+n-dictionary.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.109964+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 39091004,
+      "sha256": "c3ac22f3917ed0e9e5d5f05ff8ba729c118e89f273586fda7b2649feb7bfaae9"
+    },
+    {
+      "id": "mission-report",
+      "path": "assets/documents/apollo13-mission-report.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/Documents/19710003598.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.136449+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 2588172,
+      "sha256": "f6941eaeabf8d611d3da88853923d7e85a8f578c577b02b7e65ba9d92bb54988"
+    },
+    {
+      "id": "gn-performance-report",
+      "path": "assets/documents/apollo13-gn-performance.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/Documents/19730017939.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.139507+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 5594755,
+      "sha256": "519239a67aa87012b2164c59f86381b97a267c412f95bf6a7c7257e4506af25d"
+    },
+    {
+      "id": "lm-gsop-p00-p39",
+      "path": "assets/documents/R-567-sec4-rev7-P00-P39.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec4-rev7-P00-P39.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.182876+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 3117726,
+      "sha256": "37a8dddb97b71d08abb85da7eb4f96db70fb9abb8bf4250211ed71a9f8b39ad8"
+    },
+    {
+      "id": "lm-gsop-r10-r56",
+      "path": "assets/documents/R-567-sec4-rev7-R10-R56.pdf",
+      "source_url": "https://www.ibiblio.org/apollo/NARA-SW/R-567-sec4-rev7-R10-R56.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.186304+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 2768833,
+      "sha256": "145bae6ee84814f163bd46e03c2436fe24171bb3ad8aeb8015b57e6975600887"
+    },
+    {
+      "id": "air-ground-transcript",
+      "path": "assets/documents/as13-tec.pdf",
+      "source_url": "https://www.nasa.gov/wp-content/uploads/2026/01/as13-tec.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.200057+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 21441366,
+      "sha256": "e295cfc36f66889da3d376dc3060e014c2ea6ac253927afb6d4408ef68d8917b"
+    },
+    {
+      "id": "onboard-cm-transcript",
+      "path": "assets/documents/as13-cm.pdf",
+      "source_url": "https://www.nasa.gov/wp-content/uploads/2026/01/as13-cm.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.225574+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 925010,
+      "sha256": "d032a3ea704f62583161d265b6c84a9cdd490c97c54144866024ad0db585b0de"
+    },
+    {
+      "id": "mission-ops-report",
+      "path": "assets/documents/a13-mission-ops-report.pdf",
+      "source_url": "https://apollojournals.org/alsj/a13/A13_MissionOpReport.pdf",
+      "retrieved_utc": "2026-11-15T18:36:16.226869+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 9761664,
+      "sha256": "292190dd888748f944262a381a7f21734deed19a4ea8d8e95469ddf5aeb92c97"
+    },
+    {
+      "id": "nasa-audio-sample",
+      "path": "assets/audio/houston_problem_nasa.mp3",
+      "source_url": "https://www.nasa.gov/wp-content/uploads/2015/01/574928main_houston_problem.mp3",
+      "retrieved_utc": "2026-11-15T18:36:16.234826+00:00",
+      "rights_status": "source attribution retained; review before public redistribution",
+      "scenario_ready": false,
+      "status": "downloaded",
+      "bytes": 412815,
+      "sha256": "d71d23e3a166277d13e414cb45d495da4eba793d975430f34471003e16f0afb1"
+    },
+    {
+      "path": "research/archive_Apollo13Audio_metadata.json",
+      "bytes": 440025,
+      "sha256": "bdfe15e0f5396c1ba3b19fc9429e3473b8a2fa3f1376f9c2b526522617cdbbf5",
+      "id": "archive-Apollo13Audio",
+      "source_url": "https://archive.org/metadata/Apollo13Audio",
+      "status": "downloaded",
+      "scenario_ready": false,
+      "rights_status": "catalogue metadata only"
+    }
+  ]
+}
