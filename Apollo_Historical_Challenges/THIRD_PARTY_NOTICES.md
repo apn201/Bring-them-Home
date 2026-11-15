@@ -20,11 +20,10 @@ Each acquired file has a source URL and checksum in ASSET_MANIFEST.json. Credit 
 
 NASA media guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/
 
-### DSKY interface photograph
+### DSKY interface presentation
 
-- `public/images/nasa-dsky-f8.jpg` — NASA identifier `362848main_EC96-43408-1`, NASA photo / Dennis Taylor.
-- Source record: https://www.dvidshub.net/image/834002/f-8-digital-fly-wire . The record marks the image **Public Domain** and identifies it as the Apollo-derived DSKY used in NASA's F-8 Digital Fly-By-Wire programme.
-- The game applies CSS colour treatment and live relay/lamp overlays; those additions are not part of the historical photograph.
+- `public/images/dsky-front-dsky-v2.png` is a project-generated, unbranded visual plate for the interactive overlay. It is not presented as a photograph of flight hardware or as a NASA image.
+- The game applies the live relay/lamp display and controls over this illustrative plate. The underlying LM131R1 program and its output are separately identified above.
 
 Short sample source page: https://www.nasa.gov/historical-sounds/
 
