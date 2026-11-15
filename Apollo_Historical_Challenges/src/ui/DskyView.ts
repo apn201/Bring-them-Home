@@ -15,6 +15,11 @@ const lampPositions: Partial<Record<string, readonly [number, number, number, nu
   'KEY REL': [22.7, 36, 8.5, 7.2], RESTART: [33.2, 36, 8.5, 7.2], 'OPR ERR': [22.7, 45, 8.5, 7.2], TRACKER: [33.2, 45, 8.5, 7.2],
 };
 
+const lampLabels: Readonly<Record<string, string>> = {
+  'UPLINK ACTY': 'UPLINK<br>ACTY', TEMP: 'TEMP', 'NO ATT': 'NO ATT', 'GIMBAL LOCK': 'GIMBAL<br>LOCK', STBY: 'STBY', PROG: 'PROG',
+  'KEY REL': 'KEY REL', RESTART: 'RESTART', 'OPR ERR': 'OPR ERR', TRACKER: 'TRACKER',
+};
+
 export class DskyView extends HTMLElement {
   private decoder = new DskyDecoder();
   private readonly root = this.attachShadow({ mode: 'open' });
@@ -22,7 +27,7 @@ export class DskyView extends HTMLElement {
   connectedCallback(): void {
     this.root.innerHTML = `<style>${styles}</style><section class="instrument" aria-label="Live Apollo-style display and keyboard"><img class="panel-photo" src="./images/dsky-front-dsky-v2.png" alt="Front-on period guidance-computer instrument panel"><div class="photo-tint" aria-hidden="true"></div><div class="lamp-overlay" aria-hidden="true">${dskyLamps.map((lamp) => {
       const position = lampPositions[lamp];
-      return position ? `<i class="lamp" data-lamp="${lamp}" style="--x:${position[0]}%;--y:${position[1]}%;--w:${position[2]}%;--h:${position[3]}%"></i>` : '';
+      return position ? `<i class="lamp" data-lamp="${lamp}" style="--x:${position[0]}%;--y:${position[1]}%;--w:${position[2]}%;--h:${position[3]}%"></i><span aria-hidden="true" style="position:absolute;left:${position[0]}%;top:${position[1]}%;width:${position[2]}%;height:${position[3]}%;display:grid;place-items:center;color:#1f2823;font:700 clamp(5px,.7vw,8px)/1 ui-monospace,monospace;letter-spacing:.015em;text-align:center;text-shadow:0 1px #d5d2c4">${lampLabels[lamp]}</span>` : '';
     }).join('')}</div><div class="display" aria-live="polite"><span class="field-label program-label">PROG</span><span class="field-label verb-label">VERB</span><span class="field-label noun-label">NOUN</span><output class="program" data-field="program">  </output><output class="verb" data-field="verb">  </output><output class="noun" data-field="noun">  </output><div class="registers">${[0, 1, 2].map((row) => `<div class="register"><output class="sign" data-sign="${row}"> </output><output data-register="${row}">     </output></div>`).join('')}</div></div><div class="keypad">${keys.map((key) => { const [x, y] = keyPositions[key]; return `<button data-key="${key}" style="--x:${x}%;--y:${y}%" aria-label="${key.replace('_', ' ')}">${keyLabels[key]}</button>`; }).join('')}</div><span class="photo-credit">PROJECT-GENERATED PANEL · LIVE RELAY OVERLAY</span></section>`;
     this.root.querySelectorAll<HTMLButtonElement>('button[data-key]').forEach((button) => {
       const key = button.dataset.key as DskyKey;
