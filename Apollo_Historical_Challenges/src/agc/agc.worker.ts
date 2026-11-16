@@ -3,6 +3,7 @@ import { keyCodes, type AgcKey } from './KeyCodec';
 import type { ChannelEvent, WorkerRequest, WorkerResponse } from './protocol';
 import { ImuPeripheral } from './ImuPeripheral';
 import { prepareImuCheckpoint } from './ImuCheckpoint';
+import { SpacecraftDynamics } from './SpacecraftDynamics';
 
 declare const self: DedicatedWorkerGlobalScope;
 type Exports = {
@@ -24,6 +25,8 @@ let imu = new ImuPeripheral();
 let requests = Promise.resolve();
 let preparing = false;
 let preparedEvents: ChannelEvent[] = [];
+let flight: SpacecraftDynamics | undefined;
+let warp = 1;
 
 const post = (message: WorkerResponse): void => self.postMessage(message);
 
@@ -35,6 +38,9 @@ async function handle(message: WorkerRequest): Promise<void> {
   if (message.type === 'start') { wasmUrl = message.wasmUrl; romUrl = message.romUrl; romName = message.romName; await start(); return; }
   if (!engine) return;
   if (message.type === 'pause') { running = !message.paused; return; }
+  if (message.type === 'rcs') { flight?.control(message.axis,message.direction); return; }
+  if (message.type === 'engine') { flight?.engine(message.firing,message.throttle); return; }
+  if (message.type === 'warp') { warp=Math.max(1,Math.min(4,message.factor)); return; }
   if (message.type === 'restart') {
     post({ type: 'preparing' }); preparing = true; preparedEvents = [];
     try {
@@ -44,6 +50,7 @@ async function handle(message: WorkerRequest): Promise<void> {
         const counters = new Uint16Array(memory.buffer, engine.get_erasable_ptr() + 0o32 * 2, 3);
         if (!message.imuCheckpoint.every((target, index) => { const actual = (counters[index] & 0x7fff) * 360 / 32768; const delta = Math.abs(actual - ((target / 100 % 360 + 360) % 360)); return Math.min(delta, 360 - delta) < 0.06; })) throw new Error('Mission checkpoint failed encoder verification. Restart the assignment.');
       }
+      flight = message.flight ? new SpacecraftDynamics(message.flight) : undefined; warp=1;
       preparing = false;
       post({ type: 'restarted' }); publishFrame(preparedEvents); preparedEvents = [];
     } finally { preparing = false; }
@@ -56,12 +63,13 @@ async function handle(message: WorkerRequest): Promise<void> {
 async function start(): Promise<void> {
   if (!booting) booting = instantiate();
   await booting;
-  if (interval === undefined) interval = self.setInterval(() => { if (running) tick(1700); }, 20);
+  if (interval === undefined) interval = self.setInterval(() => { if (running) tick(1700*warp); }, 20);
   running = true;
 }
 
 async function instantiate(): Promise<void> {
   imu = new ImuPeripheral();
+  flight = undefined;
   memory = new WebAssembly.Memory({ initial: 5 });
   const wasi = {
     fd_close: (): number => 0,
@@ -105,6 +113,7 @@ function tick(steps: number): void {
   for (let remaining = steps; remaining > 0;) {
     imu.flush((channel, value) => engine.packet_write(channel, value));
     const quantum = Math.min(remaining, 1000);
+    if (!preparing && flight) imu.moveEncoders(flight.step(quantum/85333));
     engine.cpu_step(quantum); cycle += quantum; remaining -= quantum;
     events.push(...drain());
   }
@@ -114,7 +123,7 @@ function tick(steps: number): void {
 
 function publishFrame(events: ChannelEvent[]): void {
   const cdu = [...new Uint16Array(memory.buffer, engine.get_erasable_ptr() + 0o32 * 2, 3)].map((word) => (word & 0x7fff) * 360 / 32768);
-  post({ type: 'frame', cycle, events, erasableHash: hashErasable(), coreWords: coreWords(), imuAngles: cdu });
+  post({ type: 'frame', cycle, events, erasableHash: hashErasable(), coreWords: coreWords(), imuAngles: cdu, flight: flight?.snapshot() });
 }
 
 function drain(): ChannelEvent[] {

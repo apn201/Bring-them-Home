@@ -8,6 +8,10 @@
 export class ImuPeripheral {
   private readonly pending = [0, 0, 0];
   readonly driveCounts = [0, 0, 0];
+  private readonly fractions = [0, 0, 0];
+  moveEncoders(degrees: readonly number[]): void {
+    for(let axis=0;axis<3;axis++) { this.fractions[axis] += degrees[axis]*32768/360; const pulses=Math.trunc(this.fractions[axis]); this.fractions[axis]-=pulses; this.pending[axis]+=pulses; }
+  }
   applyOutput(channel: number, value: number): void {
     if (channel < 0o174 || channel > 0o176) return;
     const axis = channel - 0o174;

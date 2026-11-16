@@ -12,5 +12,5 @@ export function romHarness() {
   const key=(key:AgcKey)=>{e.packet_write(0o15,keyCodes[key]!);};
   const keys=(sequence:readonly AgcKey[])=>{for(const k of sequence){key(k);step(15000);}};
   const angles=()=>[...new Uint16Array(memory.buffer,e.get_erasable_ptr()+0o32*2,3)].map(word=>(word&0x7fff)*360/32768);
-  return { decoder, step, key, keys, angles, lampTest:()=>lampTest };
+  return { decoder, step, key, keys, angles, moveEncoders:(degrees:readonly number[])=>imu.moveEncoders(degrees), lampTest:()=>lampTest };
 }

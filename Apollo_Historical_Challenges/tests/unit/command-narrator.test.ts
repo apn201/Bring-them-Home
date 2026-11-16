@@ -25,4 +25,14 @@ describe('operator command meaning', () => {
     ['VERB', '1', '6', 'NOUN', '2', '0'].forEach((key) => narrator.accept(key as AgcKey));
     expect(narrator.accept('ENTR')?.message).toContain('Continuous monitoring of actual gimbal encoders');
   });
+  it('distinguishes a desired target load from an executed alignment', () => {
+    const narrator = new CommandNarrator();
+    ['VERB','2','5','NOUN','2','2','ENTR'].forEach(key => narrator.accept(key as AgcKey));
+    for (const raw of ['27210','35570']) ['PLUS',...raw,'ENTR'].forEach(key => narrator.accept(key as AgcKey));
+    ['PLUS',...'33010'].forEach(key => narrator.accept(key as AgcKey));
+    const result = narrator.accept('ENTR');
+    expect(result).toMatchObject({ component: 2, value: 33010 });
+    expect(result?.message).toContain('Read back N22');
+    expect(result?.message).toContain('alone does not turn the spacecraft');
+  });
 });

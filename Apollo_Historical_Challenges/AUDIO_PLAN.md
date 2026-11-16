@@ -1,5 +1,17 @@
 # Audio acquisition and alignment plan
 
+## Campaign implementation update — 16 November 2026
+
+The activation cue is now user-reviewed and playable: `414-AAA_TRACK-1.mp3`,
+05:07:32–05:08:20, anchored to PAO line 14230 at 05:07:40. See
+`CAMPAIGN_SOURCES.md`. This supersedes the older unresolved coarse-audio row below.
+
+Other current campaign radio prompts are original, clearly labeled reproduced
+readings of sourced PAD data using browser speech synthesis. They are not
+presented as authentic recordings. Written repeat and Stop Radio are available.
+The remaining original-recording acquisition/alignment requirements below still
+apply before replacing those reproduced prompts with archive audio.
+
 ## Acquired
 
 - `assets/audio/houston_problem_nasa.mp3`: NASA Historical Sounds sample, 17.110208 seconds according to ffprobe. Source and SHA-256 are in ASSET_MANIFEST.json. Intended for optional introduction/technical audio plumbing only; it is not any playable scenario's procedure track.

@@ -15,6 +15,7 @@ export class CommandNarrator {
   private editing: 'verb' | 'noun' | undefined;
   private number = '';
   private component = -1;
+  private loadingNoun = '20';
   reset(): void { this.verb = ''; this.noun = ''; this.editing = undefined; this.number = ''; this.component = -1; }
   accept(key: AgcKey): CommandMeaning | undefined {
     if (key === 'VERB' || key === 'NOUN') { this.editing = key === 'VERB' ? 'verb' : 'noun'; this[this.editing] = ''; this.component = -1; this.number = ''; return; }
@@ -27,13 +28,21 @@ export class CommandNarrator {
       this.editing = undefined;
       const command = `V${this.verb.padStart(2, '0')}${this.verb === '35' ? '' : ` N${this.noun.padStart(2, '0')}`}`;
       if (this.verb === '35') return { kind: 'AGC', command, message: 'Lamp test requested (V35). The computer should illuminate the display and annunciators.' };
-      if (this.noun === '20' && this.verb === '41') { this.component = 0; return { kind: 'GUIDANCE', command, message: 'Coarse IMU alignment requested (V41 N20). Enter outer, inner, then middle gimbal angles in hundredths of a degree. These are platform angles, not a spacecraft heading or engine firing.' }; }
+      if (['06','16'].includes(this.verb)&&['33','81'].includes(this.noun)) return {kind:'AGC',command,message:this.noun==='33'?'Ignition-time readout requested. Check hours, minutes and hundredths of a second.':'Maneuver velocity readout requested. Check the signed X, Y and Z components in tenths of a foot per second.'};
+      if (this.verb === '25' && ['22','33','81'].includes(this.noun)) { this.component=0; this.loadingNoun=this.noun; return {kind:'GUIDANCE',command,message:this.noun==='33'?'Ignition-time entry opened. Load hours, minutes, then seconds in hundredths.':this.noun==='81'?'Maneuver velocity entry opened. Load X, Y and Z components in tenths of a foot per second.':'Desired attitude-angle entry opened. Load the three targets in hundredths of a degree.'}; }
+      if (this.noun === '20' && this.verb === '41') { this.component = 0; this.loadingNoun='20'; return { kind: 'GUIDANCE', command, message: 'Coarse IMU alignment requested (V41 N20). Enter outer, inner, then middle gimbal angles in hundredths of a degree. These are platform angles, not a spacecraft heading or engine firing.' }; }
       if (['20', '22'].includes(this.noun) && ['06', '16'].includes(this.verb)) return { kind: 'AGC', command, message: `${this.verb === '16' ? 'Continuous monitoring' : 'Readout'} of ${this.noun === '22' ? 'desired platform targets' : 'actual gimbal encoders'} requested (${command}). R1 is outer, R2 inner, R3 middle gimbal angle; +30343 means +303.43°. Waiting for the computer display.` };
       return { kind: 'AGC', command, message: `${command} requested. Its effect depends on the active flight program; watch the computer response.` };
     }
     if (this.component >= 0 && this.component < 3) {
-      if (!/^[+-]\d{5}$/.test(this.number)) return { kind: 'CAUTION', message: `The ${axes[this.component].toLowerCase()} angle entry is incomplete. Use CLR and enter a sign followed by five digits.` };
+      if (!/^[+-]\d{5}$/.test(this.number)) {
+        const component = this.loadingNoun === '33' ? ['hours','minutes','seconds'][this.component] : this.loadingNoun === '81' ? `${['X','Y','Z'][this.component]} velocity` : `${axes[this.component].toLowerCase()} angle`;
+        return { kind: 'CAUTION', message: `The ${component} entry is incomplete. Use CLR and enter a sign followed by five digits.` };
+      }
       const component = this.component++; const value = Number(this.number); this.number = '';
+      if(this.loadingNoun==='33')return {kind:'GUIDANCE',component,value,message:`Ignition ${['hours','minutes','seconds'][component]} submitted: ${component===2?(value/100).toFixed(2):value}. ${component===2?'Read back N33 to verify the stored time.':''}`};
+      if(this.loadingNoun==='81')return {kind:'GUIDANCE',component,value,message:`Maneuver ΔV ${['X','Y','Z'][component]} submitted: ${(value/10).toFixed(1)} ft/s. ${(value<0?'Negative':'Positive')} ${['X','Y','Z'][component]} component.${component===2?' Read back N81 before authorizing the burn.':''}`};
+      if(this.loadingNoun==='22')return {kind:'GUIDANCE',component,value,message:`Desired ${axes[component].toLowerCase()} target submitted: ${angleMeaning(value)}.${component===2?' Read back N22 to verify the stored targets. Loading desired angles alone does not turn the spacecraft.':''}`};
       return { kind: 'GUIDANCE', component, value, message: `${axes[component]} gimbal target submitted: ${angleMeaning(value)}. ${component < 2 ? `Next: ${axes[component + 1].toLowerCase()} gimbal angle.` : 'All three targets submitted. Use V06 N20 to inspect the actual ICDU angles; submission alone does not confirm the platform moved.'}` };
     }
   }
