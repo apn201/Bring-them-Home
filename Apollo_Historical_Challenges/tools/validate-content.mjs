@@ -15,7 +15,7 @@ if (paoAlignment.anchors?.[1]?.recordingElapsed !== '06:16:21') throw new Error(
 const aquariusAudioCandidates = JSON.parse(await readFile('content/evidence/aquarius-audio-candidate-map.json', 'utf8'));
 if (aquariusAudioCandidates.release !== false) throw new Error('Aquarius audio candidates must not be released before a spoken-content match.');
 if (aquariusAudioCandidates.aquariusCoarseAlignment?.transcriptLine !== 25146) throw new Error('Aquarius candidate map must retain the TEC source line.');
-if (aquariusAudioCandidates.aquariusCoarseAlignment?.probableTransfer !== '414-AAA_TRACK-1.mp3') throw new Error('Aquarius review must target the time-derived 414 Track 1 candidate.');
-if (aquariusAudioCandidates.aquariusCoarseAlignment?.calculation?.calculatedSeek !== '05:03:19') throw new Error('Aquarius candidate must retain the source-derived review seek.');
+if (aquariusAudioCandidates.aquariusCoarseAlignment?.confirmedTransfer !== '414-AAA_TRACK-1.mp3') throw new Error('Aquarius V41 N20 must retain its phrase-confirmed 414 Track 1 source.');
+if (aquariusAudioCandidates.aquariusCoarseAlignment?.confirmedAudioCue?.recordingElapsed !== '05:07:40') throw new Error('Aquarius V41 N20 cue must retain its reviewed recording timestamp.');
 if (aquariusAudioCandidates.laterVerifiedTransfer?.anchors?.[0]?.transcriptLine !== 15020) throw new Error('415 PAO start anchor must be retained.');
 console.log(`valid content: ${scenario.id}; historical draft held at ${historicalDraft.fidelity}; archive catalog ${audioCatalog.id}`);

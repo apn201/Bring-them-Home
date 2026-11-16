@@ -16,7 +16,19 @@
     "transcript": "AS13_TEC_djvu.txt",
     "transcriptLine": 25146,
     "missionTime": "02:10:02:26",
-    "probableTransfer": "414-AAA_TRACK-1.mp3",
+    "confirmedTransfer": "414-AAA_TRACK-1.mp3",
+    "confirmedAudioCue": {
+      "recordingElapsed": "05:07:40",
+      "transcript": "AS13_PAO_djvu.txt",
+      "transcriptLine": 14230,
+      "match": "SC: Okay, Verb 41, Noun 20. All plus."
+    },
+    "supportingAnchor": {
+      "recordingElapsed": "05:04:05",
+      "transcript": "AS13_PAO_djvu.txt",
+      "transcriptLine": 14156,
+      "match": "PAO: This is Apollo Control at 57 hours 58 minutes ground elapsed time."
+    },
     "calculation": {
       "recordingAnchor": {
         "recordingElapsed": "00:24:28",
@@ -28,7 +40,7 @@
       "calculatedSeek": "05:03:19",
       "reviewWindow": "05:03:00–05:09:00"
     },
-    "status": "time-derived candidate only; confirm V41 N20 spoken content before runtime playback"
+    "status": "spoken content confirmed by PAO line 14230; ready for excerpt review and transcript-linked scenario cueing"
   },
   "laterVerifiedTransfer": {
     "transfer": "415-AAA",

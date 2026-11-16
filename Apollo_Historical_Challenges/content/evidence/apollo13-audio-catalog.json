@@ -44,7 +44,7 @@
         "state": "two-anchor mapped as public-affairs commentary; not the Aquarius technical loop"
       }
     ],
-    "nextReview": "Review 414-AAA Track 1 at 05:03:00–05:09:00. The window is derived from a TEC anchor and reaches Aquarius V41 N20 at 05:03:19; confirm the spoken command before playback.",
+    "nextReview": "414-AAA Track 1 is now phrase-confirmed: PAO line 14230 / Aquarius V41 N20 occurs at 05:07:40. Review the exact excerpt and its transcript together before enabling browser playback.",
     "aquariusCandidateMap": "content/evidence/aquarius-audio-candidate-map.json"
   }
 }
