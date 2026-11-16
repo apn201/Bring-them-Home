@@ -23,6 +23,13 @@ describe('Aquarius coarse-alignment rehearsal', () => {
     run.accept('VERB');
     run.accept('4');
     expect(run.accept('2')).toMatchObject({ phase: 'clear-entry', assistance: 1 });
-    expect(run.accept('CLR')).toMatchObject({ phase: 'step-0', completedSteps: 0 });
+    expect(run.accept('CLR')).toMatchObject({ phase: 'command', completedSteps: 0 });
+  });
+
+  it('accepts a syntactically valid alternate target and marks the replay diverged', () => {
+    const run = new AquariusCoarseRun();
+    run.start();
+    ['VERB', '4', '1', 'NOUN', '2', '0', 'ENTR', 'PLUS', '3', '0', '2', '4', '3', 'ENTR', 'MINUS', '0', '0', '0', '1', '0', 'ENTR', 'PLUS', '0', '0', '8', '1', '3', 'ENTR'].forEach((key) => run.accept(key as AgcKey));
+    expect(run.snapshot()).toMatchObject({ complete: true, historicalReplay: false, values: [30243, -10, 813] });
   });
 });

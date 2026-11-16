@@ -55,9 +55,13 @@ missionReview.setAttribute('aria-labelledby', 'mission-review-title');
 missionReview.innerHTML = `<div><p class="eyebrow">02 / EVIDENCE STATION</p><h2 id="mission-review-title">Aquarius: preserve the platform</h2><p>The historical mission is still gated. One reviewed cue is ready: V41 N20 and the first coarse angle at GET 58:02:26.</p></div><div class="mission-cue"><span>VERIFIED CUE</span><strong>V41 N20 · +30243</strong><small>414-AAA Track 1 · 05:07:40<br>PAO line 14230 / TEC line 25146</small><div><button class="outline" id="play-aquarius-cue">Play reviewed cue</button><button class="quiet" id="stop-aquarius-cue">Stop</button></div><p id="aquarius-audio-status" aria-live="polite">Ready for operator-initiated review.</p></div>`;
 const missionProcedure = document.createElement('section');
 missionProcedure.className = 'mission-procedure';
-missionProcedure.innerHTML = `<div><p class="eyebrow">EVIDENCE-GATED REHEARSAL</p><h3>Coarse alignment command set</h3><p>Runs V41 N20 and the reviewed values against the live LM131R1 ROM. The command and audio are historical evidence; the boot state is not an Apollo 13 spacecraft reconstruction.</p></div><div><ol id="aquarius-steps"><li class="active"><b>01</b><span>Enter V41 N20</span></li><li><b>02</b><span>Enter +30243</span></li><li><b>03</b><span>Enter +34778</span></li><li><b>04</b><span>Enter +00813</span></li></ol><div class="mission-actions"><button class="outline" id="start-aquarius-rehearsal">Take the hotseat</button><button class="quiet" id="leave-aquarius-rehearsal">Return to training</button></div><p id="aquarius-rehearsal-status" aria-live="polite">Audio cue reviewed · rehearsal not staged.</p></div>`;
+missionProcedure.innerHTML = `<div><p class="eyebrow">EVIDENCE-GATED REHEARSAL</p><h3>Coarse alignment command set</h3><p>Runs V41 N20 and the reviewed values against the live LM131R1 ROM. The command and audio are historical evidence; the boot state is not an Apollo 13 spacecraft reconstruction.</p></div><div><ol id="aquarius-steps"><li class="active"><b>01</b><span>Enter V41 N20</span></li><li><b>02</b><span>Enter +30243</span></li><li><b>03</b><span>Enter +34778</span></li><li><b>04</b><span>Enter +00813</span></li></ol><div class="mission-actions"><button class="outline" id="start-aquarius-rehearsal">Take the hotseat</button><button class="quiet" id="leave-aquarius-rehearsal">Return to training</button></div><p id="aquarius-rehearsal-status" aria-live="polite">Audio cue reviewed · rehearsal not staged.</p><div class="mission-explore" id="mission-explore" hidden><span>LIVE ROM OPEN</span><p>Type your own verbs and nouns, or inspect the resulting angles.</p><button class="outline" id="show-icdu-angles">Display V06 N20</button></div></div>`;
 missionReview.append(missionProcedure);
 document.querySelector('.chapters')?.before(missionReview);
+const guidanceTelemetry = document.createElement('div');
+guidanceTelemetry.className = 'guidance-telemetry';
+guidanceTelemetry.innerHTML = '<dt>GUIDANCE</dt><dd id="guidance-mode">TRAINING BENCH</dd><dd id="guidance-target">No mission target loaded</dd><small id="guidance-effect">No mission command active.</small>';
+document.querySelector('.vitals-card dl')?.append(guidanceTelemetry);
 const aquariusChapter = document.querySelector<HTMLElement>('.chapter-grid .chapter:nth-child(2)');
 if (aquariusChapter) {
   aquariusChapter.classList.remove('held');
@@ -72,6 +76,7 @@ const elements = {
   restart: byId<HTMLButtonElement>('restart-button'), training: byId('training-list'),
   qualificationStatus: byId('qualification-status'), completion: byId('qualification-complete'), debrief: byId('training-debrief'), coreWords: byId('core-words'), trace: byId('trace-log'), tryThis: byId<HTMLElement>('try-this'),
   aquariusSteps: byId('aquarius-steps'), aquariusStatus: byId('aquarius-rehearsal-status'),
+  guidanceMode: byId('guidance-mode'), guidanceTarget: byId('guidance-target'), guidanceEffect: byId('guidance-effect'), missionExplore: byId<HTMLElement>('mission-explore'),
   telemetryTime: byId('telemetry-time'), telemetryAlt: byId('telemetry-alt'), telemetryHdot: byId('telemetry-hdot'), telemetryVel: byId('telemetry-vel'), telemetryProp: byId('telemetry-prop'), telemetryDps: byId('telemetry-dps'), telemetryCycles: byId('telemetry-cycles'), attitudePitch: byId('attitude-pitch'), attitudeRoll: byId('attitude-roll'), attitudeYaw: byId('attitude-yaw'), attitudeVehicle: bySvgId('attitude-vehicle'),
 };
 const controlTitle = (() => {
@@ -102,6 +107,7 @@ byId<HTMLButtonElement>('stop-aquarius-cue').addEventListener('click', () => { c
 byId<HTMLButtonElement>('start-aquarius-rehearsal').addEventListener('click', activateAquariusMission);
 byId<HTMLButtonElement>('launch-aquarius').addEventListener('click', activateAquariusMission);
 byId<HTMLButtonElement>('leave-aquarius-rehearsal').addEventListener('click', leaveAquariusMission);
+byId<HTMLButtonElement>('show-icdu-angles').addEventListener('click', () => runExperiment('angles'));
 document.querySelectorAll<HTMLButtonElement>('[data-experiment]').forEach((button) => button.addEventListener('click', () => runExperiment(button.dataset.experiment)));
 
 window.addEventListener('keydown', (event) => {
@@ -158,13 +164,16 @@ function updateAquarius(): void {
   const snapshot = aquarius.snapshot();
   const items = [...elements.aquariusSteps.querySelectorAll('li')];
   items.forEach((item, index) => { item.classList.toggle('done', index < snapshot.completedSteps); item.classList.toggle('active', aquarius.isRunning() && index === snapshot.completedSteps && !snapshot.complete); });
-  if (!aquarius.isRunning()) { elements.aquariusStatus.textContent = 'Audio cue reviewed · rehearsal not staged.'; return; }
+  if (!aquarius.isRunning()) { elements.aquariusStatus.textContent = 'Audio cue reviewed · rehearsal not staged.'; elements.missionExplore.hidden = true; updateGuidanceTelemetry(); return; }
   elements.aquariusStatus.textContent = snapshot.message;
   if (snapshot.complete) {
-    elements.computer.textContent = 'V41 N20 accepted — displaying live ICDU angles';
-    elements.screenReader.textContent = 'Aquarius command set accepted. Displaying the resulting ICDU angles.';
+    const replay = snapshot.historicalReplay;
+    elements.missionExplore.hidden = false;
+    elements.computer.textContent = replay ? 'V41 N20 accepted — displaying live ICDU angles' : 'Alternate alignment accepted — historical Apollo 13 replay diverged';
+    elements.screenReader.textContent = replay ? 'Aquarius command set accepted. Displaying the resulting ICDU angles.' : 'Alternate alignment accepted. This run has diverged from the documented Apollo 13 values.';
     if (!missionAnglesQueued) { missionAnglesQueued = true; window.setTimeout(() => runExperiment('angles'), 650); }
   }
+  updateGuidanceTelemetry();
 }
 
 function stageAquariusConsole(): void {
@@ -248,6 +257,22 @@ function runExperiment(id: string | undefined): void {
 }
 
 function updateTelemetry(cycle: number): void {
+  const mission = aquarius.snapshot();
+  if (aquarius.isRunning() && mission.complete) {
+    const [outer, inner, middle] = mission.values;
+    elements.telemetryTime.textContent = 'GET 58:02:26';
+    elements.telemetryAlt.textContent = 'NO BURN';
+    elements.telemetryHdot.textContent = '0.0 m/s';
+    elements.telemetryVel.textContent = 'UNCHANGED';
+    elements.telemetryProp.textContent = 'UNCHANGED';
+    elements.telemetryDps.textContent = '0%';
+    elements.telemetryCycles.textContent = cycle.toString().padStart(8, '0');
+    elements.attitudePitch.textContent = formatAlignment(middle);
+    elements.attitudeRoll.textContent = formatAlignment(outer);
+    elements.attitudeYaw.textContent = formatAlignment(inner);
+    elements.attitudeVehicle.setAttribute('transform', 'rotate(0) translate(0 0)');
+    return;
+  }
   const sample = sampleBenchTelemetry(cycle);
   elements.telemetryTime.textContent = sample.elapsed;
   elements.telemetryAlt.textContent = `${sample.altitudeKm.toFixed(2).padStart(6, '0')} km`;
@@ -262,7 +287,23 @@ function updateTelemetry(cycle: number): void {
   elements.attitudeVehicle.setAttribute('transform', `rotate(${sample.rollDeg.toFixed(2)}) translate(${sample.yawDeg.toFixed(2)} ${(-sample.pitchDeg).toFixed(2)})`);
 }
 
+function updateGuidanceTelemetry(): void {
+  const mission = aquarius.snapshot();
+  if (!aquarius.isRunning() || !mission.complete) {
+    elements.guidanceMode.textContent = aquarius.isRunning() ? 'AWAITING V41 DATA' : 'TRAINING BENCH';
+    elements.guidanceTarget.textContent = 'No coarse-alignment target loaded';
+    elements.guidanceEffect.textContent = aquarius.isRunning() ? 'V41 N20 will load a guidance alignment target; it does not command a burn.' : 'No mission command active.';
+    return;
+  }
+  const [outer, inner, middle] = mission.values;
+  const historical = mission.historicalReplay === true;
+  elements.guidanceMode.textContent = historical ? 'DOCUMENTED APOLLO 13 TARGET' : 'ALTERNATE GUIDANCE TARGET';
+  elements.guidanceTarget.textContent = `O ${formatAlignment(outer)} · I ${formatAlignment(inner)} · M ${formatAlignment(middle)}`;
+  elements.guidanceEffect.textContent = historical ? 'V41 accepts the alignment target. No physical turn, RCS firing, or DPS burn is commanded by this entry.' : 'The real ROM accepted your alternate target. This run no longer follows the Apollo 13 evidence path; return outcome is not assessed by this rehearsal.';
+}
+
 function formatAngle(value: number): string { return `${value >= 0 ? '+' : ''}${value.toFixed(1).padStart(4, '0')}°`; }
+function formatAlignment(value: number): string { return `${value >= 0 ? '+' : '−'}${(Math.abs(value) / 100).toFixed(2).padStart(6, '0')}°`; }
 
 function setPaused(next: boolean): void {
   paused = next;
