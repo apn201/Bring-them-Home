@@ -35,6 +35,16 @@
   "audio": {
     "state": "unmapped",
     "collectionNote": "The collection contains large multitrack FLAC/MP3/Ogg transfers plus named edited clips. File names alone are not sufficient to assert transcript synchronization.",
+    "reviewCandidates": [
+      {
+        "id": "405-aaa-track-1",
+        "url": "https://archive.org/download/Apollo13Audio/405-AAA_TRACK-1.mp3",
+        "missionWindow": "GET 01:30–04:35",
+        "targetRelativeOffset": "00:40:02.26",
+        "transcript": "AS13_TEC 02:10:02:26",
+        "state": "acquired-for-human-sync-review; communications-loop identity unverified"
+      }
+    ],
     "nextReview": "Identify the source tape for 02:10:02:26, establish its offset against AS13_TEC, then have the operator approve the excerpt and transcript together."
   }
 }
