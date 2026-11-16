@@ -5,6 +5,7 @@ import type { WorkerResponse } from './agc/protocol';
 import { MissionClock } from './runtime/MissionClock';
 import { AquariusCoarseRun } from './runtime/AquariusCoarseRun';
 import { sampleBenchTelemetry } from './runtime/BenchTelemetry';
+import { projectGuidanceOutcome, svgPath } from './runtime/FlightDirectorProjection';
 import { QualificationRun } from './runtime/QualificationRun';
 import { AQUARIUS_V41_N20_CUE, TranscriptCuePlayer } from './runtime/TranscriptCuePlayer';
 import { DskyView } from './ui/DskyView';
@@ -62,6 +63,11 @@ const guidanceTelemetry = document.createElement('div');
 guidanceTelemetry.className = 'guidance-telemetry';
 guidanceTelemetry.innerHTML = '<dt>GUIDANCE</dt><dd id="guidance-mode">TRAINING BENCH</dd><dd id="guidance-target">No mission target loaded</dd><small id="guidance-effect">No mission command active.</small>';
 document.querySelector('.vitals-card dl')?.append(guidanceTelemetry);
+const flightDirector = document.createElement('section');
+flightDirector.className = 'flight-director';
+flightDirector.setAttribute('aria-labelledby', 'flight-director-title');
+flightDirector.innerHTML = `<header><div><span>FLIGHT DIRECTOR / TRAJECTORY REPLAY</span><h3 id="flight-director-title">The long way home</h3></div><strong id="flight-path-state">WAITING FOR GUIDANCE INPUT</strong></header><div class="flight-director-grid"><div class="trajectory-screen"><svg viewBox="0 0 100 100" role="img" aria-label="Apollo 13 mission geometry with historical and player guidance paths"><defs><pattern id="trajectory-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none"/></pattern></defs><rect width="100" height="100" class="trajectory-grid"/><path id="flight-path-reference" class="flight-path reference"/><path id="flight-path-player" class="flight-path player"/><circle class="earth-marker" cx="12" cy="68" r="5"/><circle class="moon-marker" cx="91" cy="34" r="3.8"/><circle class="aquarius-marker" cx="61" cy="25" r="1.8"/><text x="5" y="79">EARTH</text><text x="83" y="27">MOON</text><text x="63" y="22">AQUARIUS</text></svg><div class="path-key"><span><i class="reference"></i> DOCUMENTED APOLLO 13</span><span><i class="player"></i> YOUR GUIDANCE PATH</span></div></div><aside><dl><div><dt>MISSION GET</dt><dd>058:02:26</dd></div><div><dt>ACTIVE EVENT</dt><dd>V41 N20 / COARSE ALIGN</dd></div><div><dt>NEXT CRITICAL BURN</dt><dd>FREE RETURN / 061:29:43</dd></div></dl><p id="flight-path-note">V41 N20 loads alignment data. The documented free-return and PC+2 path are shown for mission context.</p><p class="trajectory-disclaimer">Mission-phase geometry from the Apollo 13 timeline. Player trace is a consequence projection, not a navigation-grade orbital solution.</p></aside></div>`;
+document.querySelector('.flight-monitor')?.after(flightDirector);
 const aquariusChapter = document.querySelector<HTMLElement>('.chapter-grid .chapter:nth-child(2)');
 if (aquariusChapter) {
   aquariusChapter.classList.remove('held');
@@ -77,6 +83,7 @@ const elements = {
   qualificationStatus: byId('qualification-status'), completion: byId('qualification-complete'), debrief: byId('training-debrief'), coreWords: byId('core-words'), trace: byId('trace-log'), tryThis: byId<HTMLElement>('try-this'),
   aquariusSteps: byId('aquarius-steps'), aquariusStatus: byId('aquarius-rehearsal-status'),
   guidanceMode: byId('guidance-mode'), guidanceTarget: byId('guidance-target'), guidanceEffect: byId('guidance-effect'), missionExplore: byId<HTMLElement>('mission-explore'),
+  flightPathReference: bySvgPathId('flight-path-reference'), flightPathPlayer: bySvgPathId('flight-path-player'), flightPathState: byId('flight-path-state'), flightPathNote: byId('flight-path-note'),
   telemetryTime: byId('telemetry-time'), telemetryAlt: byId('telemetry-alt'), telemetryHdot: byId('telemetry-hdot'), telemetryVel: byId('telemetry-vel'), telemetryProp: byId('telemetry-prop'), telemetryDps: byId('telemetry-dps'), telemetryCycles: byId('telemetry-cycles'), attitudePitch: byId('attitude-pitch'), attitudeRoll: byId('attitude-roll'), attitudeYaw: byId('attitude-yaw'), attitudeVehicle: bySvgId('attitude-vehicle'),
 };
 const controlTitle = (() => {
@@ -109,6 +116,7 @@ byId<HTMLButtonElement>('launch-aquarius').addEventListener('click', activateAqu
 byId<HTMLButtonElement>('leave-aquarius-rehearsal').addEventListener('click', leaveAquariusMission);
 byId<HTMLButtonElement>('show-icdu-angles').addEventListener('click', () => runExperiment('angles'));
 document.querySelectorAll<HTMLButtonElement>('[data-experiment]').forEach((button) => button.addEventListener('click', () => runExperiment(button.dataset.experiment)));
+updateFlightDirector();
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -164,7 +172,7 @@ function updateAquarius(): void {
   const snapshot = aquarius.snapshot();
   const items = [...elements.aquariusSteps.querySelectorAll('li')];
   items.forEach((item, index) => { item.classList.toggle('done', index < snapshot.completedSteps); item.classList.toggle('active', aquarius.isRunning() && index === snapshot.completedSteps && !snapshot.complete); });
-  if (!aquarius.isRunning()) { elements.aquariusStatus.textContent = 'Audio cue reviewed · rehearsal not staged.'; elements.missionExplore.hidden = true; updateGuidanceTelemetry(); return; }
+  if (!aquarius.isRunning()) { elements.aquariusStatus.textContent = 'Audio cue reviewed · rehearsal not staged.'; elements.missionExplore.hidden = true; updateGuidanceTelemetry(); updateFlightDirector(); return; }
   elements.aquariusStatus.textContent = snapshot.message;
   if (snapshot.complete) {
     const replay = snapshot.historicalReplay;
@@ -174,6 +182,7 @@ function updateAquarius(): void {
     if (!missionAnglesQueued) { missionAnglesQueued = true; window.setTimeout(() => runExperiment('angles'), 650); }
   }
   updateGuidanceTelemetry();
+  updateFlightDirector();
 }
 
 function stageAquariusConsole(): void {
@@ -302,6 +311,16 @@ function updateGuidanceTelemetry(): void {
   elements.guidanceEffect.textContent = historical ? 'V41 accepts the alignment target. No physical turn, RCS firing, or DPS burn is commanded by this entry.' : 'The real ROM accepted your alternate target. This run no longer follows the Apollo 13 evidence path; return outcome is not assessed by this rehearsal.';
 }
 
+function updateFlightDirector(): void {
+  const mission = aquarius.snapshot();
+  const projection = projectGuidanceOutcome(mission.complete ? mission.values : undefined);
+  elements.flightPathReference.setAttribute('d', svgPath(projection.historical));
+  elements.flightPathPlayer.setAttribute('d', svgPath(projection.player));
+  elements.flightPathState.textContent = projection.status;
+  elements.flightPathState.dataset.state = projection.state;
+  elements.flightPathNote.textContent = projection.note;
+}
+
 function formatAngle(value: number): string { return `${value >= 0 ? '+' : ''}${value.toFixed(1).padStart(4, '0')}°`; }
 function formatAlignment(value: number): string { return `${value >= 0 ? '+' : '−'}${(Math.abs(value) / 100).toFixed(2).padStart(6, '0')}°`; }
 
@@ -324,3 +343,4 @@ function keyboardKey(event: KeyboardEvent): AgcKey | undefined {
 function setFailure(message: string): void { elements.status.textContent = 'OFFLINE'; elements.computer.textContent = message; elements.screenReader.textContent = `Computer error: ${message}`; }
 function byId<T extends HTMLElement = HTMLElement>(id: string): T { const element = document.getElementById(id); if (!element) throw new Error(`Missing ${id}`); return element as T; }
 function bySvgId(id: string): SVGGElement { const element = document.getElementById(id); if (!(element instanceof SVGGElement)) throw new Error(`Missing SVG ${id}`); return element; }
+function bySvgPathId(id: string): SVGPathElement { const element = document.getElementById(id); if (!(element instanceof SVGPathElement)) throw new Error(`Missing SVG path ${id}`); return element; }
