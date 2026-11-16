@@ -36,6 +36,7 @@ export class AquariusCoarseRun {
   accept(key: AgcKey, _cycle = 0): AquariusCoarseSnapshot {
     if (key === 'RSET') { this.phase = 'diverged'; this.message = 'Rehearsal reset required · use Exact restart'; return this.snapshot(); }
     if (this.phase === 'complete' || this.phase === 'diverged') return this.snapshot();
+    if (key === 'CLR' && this.phase === 'value') { this.digits = ''; this.sign = 1; this.message = `Current angle cleared. Re-enter ${valueNames[this.valueIndex]}.`; return this.snapshot(); }
     if (this.phase === 'clear-entry') return this.acceptClear(key);
     if (this.phase === 'command') return this.acceptCommand(key);
     return this.acceptValue(key);

@@ -10,6 +10,13 @@ const reviewedSequence: readonly AgcKey[] = [
 ];
 
 describe('Aquarius coarse-alignment rehearsal', () => {
+  it('clears an unfinished angle immediately without discarding committed components', () => {
+    const run = new AquariusCoarseRun(); run.start();
+    reviewedSequence.slice(0, 14).forEach((key) => run.accept(key));
+    run.accept('PLUS'); run.accept('9'); run.accept('CLR');
+    ['PLUS', '3', '4', '7', '7', '8', 'ENTR'].forEach((key) => run.accept(key as AgcKey));
+    expect(run.snapshot()).toMatchObject({ phase: 'value', values: [30243, 34778] });
+  });
   it('requires the reviewed V41 N20 command and three source values', () => {
     const run = new AquariusCoarseRun();
     run.start();

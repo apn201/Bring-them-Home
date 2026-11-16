@@ -10,6 +10,9 @@ import { projectGuidanceOutcome, svgPath } from './runtime/FlightDirectorProject
 import { QualificationRun } from './runtime/QualificationRun';
 import { AQUARIUS_V41_N20_CUE, TranscriptCuePlayer } from './runtime/TranscriptCuePlayer';
 import { DskyView } from './ui/DskyView';
+import { DskyDecoder } from './agc/DskyDecoder';
+import { CommandNarrator, angleMeaning } from './runtime/CommandNarrator';
+import { typingMissions, type TypingMission } from './runtime/TypingMissions';
 
 const app = document.querySelector<HTMLDivElement>('#app');
 if (!app) throw new Error('Application root unavailable.');
@@ -92,6 +95,16 @@ eventConsole.className = 'event-console';
 eventConsole.setAttribute('aria-label', 'Plain-English guidance event console');
 eventConsole.innerHTML = '<header><span>GUIDANCE EVENT CONSOLE</span><strong id="event-summary">WAITING FOR OPERATOR INPUT</strong></header><ol id="event-log" aria-live="polite"><li><b>SYSTEM</b><span>LM131R1 is booting. Every key you send is relayed to channel 015; this screen explains the resulting state.</span></li></ol>';
 document.querySelector('.game-flight')?.append(eventConsole);
+const missionSelectButton = document.createElement('button');
+missionSelectButton.textContent = 'MISSIONS';
+document.querySelector('.mission-select')?.append(missionSelectButton);
+const missionMenu = document.createElement('dialog');
+missionMenu.className = 'mission-brief';
+missionMenu.innerHTML = `<header><div><span>APOLLO 13 / PROCEDURE REHEARSALS</span><h2>Select your assignment</h2></div><button class="quiet" data-close-missions>Close</button></header><div class="mission-choices">${typingMissions.map((mission) => `<button data-mission="${mission.id}"><b>${mission.title}</b><span>${mission.epoch}</span><p>${mission.situation}</p></button>`).join('')}</div>`;
+document.querySelector('.game-shell')?.append(missionMenu);
+missionSelectButton.addEventListener('click', () => missionMenu.showModal());
+missionMenu.querySelector('[data-close-missions]')?.addEventListener('click', () => missionMenu.close());
+missionMenu.querySelectorAll<HTMLButtonElement>('[data-mission]').forEach((button) => button.addEventListener('click', () => { const mission = typingMissions.find((candidate) => candidate.id === button.dataset.mission); if (mission) startTypingMission(mission); missionMenu.close(); }));
 const aquariusChapter = document.querySelector<HTMLElement>('.chapter-grid .chapter:nth-child(2)');
 if (aquariusChapter) {
   aquariusChapter.classList.remove('held');
@@ -128,14 +141,27 @@ let missionAnglesQueued = false;
 let lastMissionNarration = '';
 let lastTrainingNarration = '';
 let lightTestObserved = false;
+const narrator = new CommandNarrator();
+let feedbackDecoder = new DskyDecoder();
+let pendingReadout = false;
+let requestedReadout = '';
+let readoutStarted = 0;
+let readoutWaitReported = false;
+let lastRequestedCommand = '';
+let operatorErrorReported = false;
+let feedbackTimer: number | undefined;
+let typingMission: TypingMission | undefined;
+let typingTask = 0;
+let typingComplete = false;
 
 client.addEventListener('message', (event) => handleWorkerMessage((event as CustomEvent<WorkerResponse>).detail));
 client.addEventListener('error', (event) => setFailure((event as CustomEvent<string>).detail));
 dsky.addEventListener('dsky-key', (event) => { const { key, down } = (event as CustomEvent<{ key: AgcKey; down: boolean }>).detail; sendKey(key, down); });
 
 elements.pause.addEventListener('click', () => setPaused(!paused));
+elements.restart.addEventListener('click', (event) => { if (typingMission) { event.stopImmediatePropagation(); startTypingMission(typingMission); } }, true);
 elements.restart.addEventListener('click', () => { const restartMission = aquarius.isRunning(); missionClock.reset(); qualification.reset(); aquarius.reset(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; operatorEvents.length = 0; missionAnglesQueued = false; lastMissionNarration = ''; lastTrainingNarration = ''; lightTestObserved = false; if (restartMission) { aquarius.start(); stageAquariusConsole(); updateAquarius(); appendTrace('MISSION  Aquarius rehearsal restarted'); appendOperatorEvent('SYSTEM', 'Fresh LM131R1 instance requested. The Aquarius checklist has restarted at VERB.'); elements.computer.textContent = 'Aquarius rehearsal restored to a fresh ROM'; } else { updateTraining(); updateAquarius(); appendTrace('SYSTEM  fresh instance requested'); appendOperatorEvent('SYSTEM', 'Fresh LM131R1 boot requested. No mission state has been loaded.'); elements.computer.textContent = 'Rebuilding exact boot state'; } client.restart(); });
-byId<HTMLButtonElement>('launch-training').addEventListener('click', () => { if (aquarius.isRunning()) leaveAquariusMission(); });
+byId<HTMLButtonElement>('launch-training').addEventListener('click', () => { if (aquarius.isRunning() || typingMission) leaveAquariusMission(); });
 byId<HTMLButtonElement>('toggle-expert').addEventListener('click', () => { const button = byId<HTMLButtonElement>('toggle-expert'); const shell = document.querySelector('.game-shell'); const expert = shell?.classList.toggle('expert-mode') ?? false; button.setAttribute('aria-pressed', String(expert)); button.textContent = expert ? 'EXPERT: ON' : 'EXPERT: OFF'; appendOperatorEvent('SYSTEM', expert ? 'Expert mode enabled. Procedure text is hidden; operate from the cue, DSKY, and event console.' : 'Normal mode restored. Procedure text is visible again.'); });
 byId<HTMLButtonElement>('open-brief').addEventListener('click', () => byId<HTMLDialogElement>('mission-brief').showModal());
 byId<HTMLButtonElement>('close-brief').addEventListener('click', () => byId<HTMLDialogElement>('mission-brief').close());
@@ -149,6 +175,7 @@ document.querySelectorAll<HTMLButtonElement>('[data-experiment]').forEach((butto
 updateFlightDirector();
 
 window.addEventListener('keydown', (event) => {
+  if (document.querySelector('dialog[open]')) return;
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
   const key = keyboardKey(event);
   if (!key) return;
@@ -160,9 +187,10 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { cli
 client.start(new URL('wasm/yaAGC.wasm', document.baseURI).href, new URL('roms/LM131R1.bin', document.baseURI).href, 'LM131R1 · Apollo 13 LM ROM');
 
 function handleWorkerMessage(message: WorkerResponse): void {
+  if (message.type === 'ready' || message.type === 'restarted') { lastRequestedCommand = ''; operatorErrorReported = false; }
   if (message.type === 'ready') { elements.status.textContent = 'ONLINE'; elements.computer.textContent = 'LM131R1 ready — select a key'; elements.version.textContent = message.engineVersion; appendOperatorEvent('SYSTEM', 'The real LM131R1 ROM is online. Select a mission or enter a verb and noun.'); return; }
   if (message.type === 'error') { setFailure(message.message); return; }
-  if (message.type === 'restarted') { dsky.reset(); appendTrace('SYSTEM  fresh instance restored'); elements.computer.textContent = 'Fresh LM131R1 instance restored'; return; }
+  if (message.type === 'restarted') { dsky.reset(); narrator.reset(); feedbackDecoder = new DskyDecoder(); pendingReadout = false; window.clearTimeout(feedbackTimer); appendTrace('SYSTEM  fresh instance restored'); elements.computer.textContent = 'Fresh LM131R1 instance restored'; return; }
   if (message.type !== 'frame') return;
   missionClock.sync(message.cycle);
   updateTelemetry(message.cycle);
@@ -171,10 +199,25 @@ function handleWorkerMessage(message: WorkerResponse): void {
   elements.coreWords.textContent = `ERASABLE 0000–0007 · ${message.coreWords.map((word) => word.toString(8).padStart(5, '0')).join(' ')}`;
   for (const output of message.events) {
     dsky.applyChannel(output.channel, output.value);
-    if (output.channel === 0o13 && Boolean(output.value & (1 << 9)) && !lightTestObserved) { lightTestObserved = true; appendOperatorEvent('AGC', 'Channel 013 light-test relay received. The real DSKY annunciators should now be illuminated.'); }
+    feedbackDecoder.apply(output.channel, output.value);
+    if (output.channel === 0o13 && Boolean(output.value & (1 << 9)) && !lightTestObserved) { lightTestObserved = true; appendOperatorEvent('AGC', 'Lamp test active: the computer has switched on the annunciator-test relay. Check the illuminated legends and numeric display.'); advanceTypingMission('V35', true); }
     if (output.channel === 0o10 && output.value !== 0) elements.channelTen.textContent = output.value.toString(8).padStart(5, '0');
     if (output.value !== 0 && (output.channel === 0o10 || output.channel === 0o11 || output.channel === 0o13 || output.channel === 0o163)) appendTrace(`OUT ${output.channel.toString(8).padStart(3, '0')}  ${output.value.toString(8).padStart(5, '0')}`);
   }
+  if (lastRequestedCommand && lastRequestedCommand !== 'V35' && !operatorErrorReported && feedbackDecoder.snapshot().lamps.has('OPR ERR')) { operatorErrorReported = true; appendOperatorEvent('CAUTION', `${lastRequestedCommand}: the computer is signaling OPR ERR. Check the verb, noun and parameter range; the requested operation is not confirmed.`); }
+  if (pendingReadout && !feedbackTimer) feedbackTimer = window.setTimeout(reportReadout, 800);
+}
+
+function reportReadout(): void {
+  feedbackTimer = undefined;
+  const state = feedbackDecoder.snapshot();
+  if (pendingReadout && !readoutWaitReported && performance.now() - readoutStarted > 4000) { readoutWaitReported = true; appendOperatorEvent('CAUTION', `${requestedReadout}: the computer has not returned a complete angle display yet. Check OPR ERR and the active verb/noun before treating this request as successful.`); }
+  if (!pendingReadout || state.noun !== '20' || `V${state.verb} N20` !== requestedReadout) return;
+  if (!state.registers.every((register) => /^\d{5}$/.test(register))) return;
+  pendingReadout = false;
+  const values = state.registers.map((register, index) => Number(register) * (state.signs[index] === '−' ? -1 : 1));
+  appendOperatorEvent('AGC', `Computer readback: outer ${angleMeaning(values[0])}; inner ${angleMeaning(values[1])}; middle ${angleMeaning(values[2])}.${values.every((value) => value === 0) ? ' The emulated ICDUs report zero. The requested alignment has not been verified in this boot state.' : ''}`);
+  advanceTypingMission(`V${state.verb} N20`, true);
 }
 
 function sendKey(key: AgcKey, down = true): void {
@@ -182,10 +225,14 @@ function sendKey(key: AgcKey, down = true): void {
   if (down && key !== 'PRO') {
     appendTrace(`IN  015  ${(keyCodes[key] ?? 0).toString(8).padStart(5, '0')}  ${key}`);
     recordQualification(key);
-    elements.computer.textContent = `${key} sent to channel 015`;
-    elements.screenReader.textContent = `${key} sent to the Apollo guidance computer.`;
-    const explanation: Partial<Record<AgcKey, string>> = { VERB: 'Verb entry opened: the next two digits select an AGC action.', NOUN: 'Noun entry opened: the next two digits select the data item for that action.', ENTR: 'ENTR relayed to the AGC. The computer is evaluating the completed entry.', CLR: 'CLR relayed. The current DSKY entry is being cleared.', RSET: 'RSET relayed. The AGC is handling a reset request.', PLUS: 'Positive-sign key relayed for the current numeric component.', MINUS: 'Negative-sign key relayed for the current numeric component.' };
-    if (explanation[key]) appendOperatorEvent('INPUT', explanation[key]!);
+    const meaning = narrator.accept(key);
+    if (meaning) {
+      appendOperatorEvent(meaning.kind, meaning.message);
+      elements.computer.textContent = meaning.command ? `${meaning.command} / request sent` : 'Guidance parameter submitted';
+      elements.screenReader.textContent = meaning.message;
+      if (meaning.command) { lastRequestedCommand = meaning.command; operatorErrorReported = false; }
+      if (meaning.command) { if (meaning.command === 'V35') lightTestObserved = false; if (['V06 N20', 'V16 N20'].includes(meaning.command)) { requestedReadout = meaning.command; pendingReadout = true; readoutStarted = performance.now(); readoutWaitReported = false; window.clearTimeout(feedbackTimer); feedbackTimer = undefined; } advanceTypingMission(meaning.command, false); }
+    }
   }
 }
 
@@ -200,13 +247,45 @@ function appendOperatorEvent(kind: 'SYSTEM' | 'INPUT' | 'AGC' | 'GUIDANCE' | 'CA
   if (operatorEvents.at(-1) === entry) return;
   operatorEvents.push(entry); if (operatorEvents.length > 5) operatorEvents.shift();
   elements.eventLog.innerHTML = operatorEvents.join('');
+  elements.eventLog.scrollTop = elements.eventLog.scrollHeight;
   elements.eventSummary.textContent = kind === 'CAUTION' ? 'CAUTION / OPERATOR ACTION REQUIRED' : `${kind} / ${message.slice(0, 42).toUpperCase()}`;
 }
 
 function recordQualification(key: AgcKey): void {
+  if (typingMission) return;
   if (aquarius.isRunning()) { aquarius.accept(key, missionClock.snapshot().cycle); updateAquarius(); return; }
   qualification.accept(key, missionClock.snapshot().cycle);
   updateTraining();
+}
+
+function startTypingMission(mission: TypingMission): void {
+  leaveAquariusMission();
+  typingMission = mission; typingTask = 0; typingComplete = false;
+  lightTestObserved = false;
+  elements.training.dataset.mode = 'aquarius';
+  controlTitle.textContent = mission.title;
+  elements.training.innerHTML = mission.tasks.map((task, index) => `<li class="${index === 0 ? 'active' : ''}"><b>0${index + 1}</b><span>${task.label}<br><strong>${task.command} ENTR</strong></span></li>`).join('');
+  elements.qualificationStatus.textContent = mission.situation;
+  elements.completion.hidden = true; elements.tryThis.hidden = true;
+  appendOperatorEvent('GUIDANCE', `${mission.epoch}: ${mission.situation}`);
+  byId('flight-monitor-title').textContent = mission.title;
+  elements.flightPathState.textContent = 'PROCEDURE REHEARSAL';
+  elements.flightPathNote.textContent = `${mission.source}. The scene uses the fresh LM ROM; historical telemetry has not been loaded.`;
+}
+
+function advanceTypingMission(command: string, confirmed: boolean): void {
+  if (!typingMission || typingComplete) return;
+  const task = typingMission.tasks[typingTask];
+  if (command !== task.command || (task.feedback && !confirmed)) return;
+  const items = [...elements.training.querySelectorAll('li')];
+  items[typingTask]?.classList.add('done'); items[typingTask]?.classList.remove('active');
+  typingTask++;
+  if (typingTask < typingMission.tasks.length) { items[typingTask]?.classList.add('active'); return; }
+  typingComplete = true;
+  elements.qualificationStatus.textContent = 'PROCEDURE COMPLETE — read the actual computer result below.';
+  appendOperatorEvent('GUIDANCE', typingMission.debrief);
+  elements.computer.textContent = 'Procedure complete / free console';
+  elements.tryThis.hidden = false;
 }
 
 function updateAquarius(): void {
@@ -215,17 +294,13 @@ function updateAquarius(): void {
   items.forEach((item, index) => { item.classList.toggle('done', index < snapshot.completedSteps); item.classList.toggle('active', aquarius.isRunning() && index === snapshot.completedSteps && !snapshot.complete); });
   if (!aquarius.isRunning()) { elements.aquariusStatus.textContent = 'Audio cue reviewed · rehearsal not staged.'; elements.missionExplore.hidden = true; updateGuidanceTelemetry(); updateFlightDirector(); return; }
   elements.aquariusStatus.textContent = snapshot.message;
-  if (snapshot.message !== lastMissionNarration) {
-    lastMissionNarration = snapshot.message;
-    appendOperatorEvent(snapshot.phase === 'clear-entry' || snapshot.phase === 'diverged' ? 'CAUTION' : 'GUIDANCE', snapshot.message);
-  }
+  if (snapshot.message !== lastMissionNarration) { lastMissionNarration = snapshot.message; if (snapshot.phase === 'clear-entry' || snapshot.phase === 'diverged') appendOperatorEvent('CAUTION', 'The rehearsal entry needs correction. Use CLR to retry the current component.'); }
   if (snapshot.complete) {
     const replay = snapshot.historicalReplay;
     elements.missionExplore.hidden = false;
     elements.computer.textContent = replay ? 'Reviewed alignment sequence recorded — no engine command issued' : 'Alternate alignment recorded — historical reference no longer matches';
     elements.screenReader.textContent = replay ? 'Reviewed Aquarius checklist completed. This alignment entry does not fire engines or move the spacecraft.' : 'Alternate alignment recorded. This run has diverged from the documented Apollo 13 values.';
-    appendOperatorEvent('GUIDANCE', replay ? 'Checklist complete. V41 N20 is an alignment-data entry; it does not fire RCS or DPS, so no turn or burn should appear. The current build has not yet verified a flight-state initialization that makes the AGC redisplay these values; 00000 is not proof of a spacecraft update.' : 'Alternate values were recorded by the rehearsal layer. They are not a verified Apollo 13 trajectory solution, and this run is off the documented reference.');
-    if (!missionAnglesQueued) { missionAnglesQueued = true; window.setTimeout(() => runExperiment('angles'), 650); }
+    if (!missionAnglesQueued) { missionAnglesQueued = true; appendOperatorEvent('GUIDANCE', replay ? 'The submitted targets match the Apollo 13 alignment worksheet. Next task: type V06 N20 ENTR to inspect the real computer readback, then V16 N20 ENTR to monitor it.' : 'Your submitted targets differ from the Apollo 13 worksheet. Type V06 N20 ENTR to inspect actual computer feedback before trusting the alignment.'); }
   }
   updateGuidanceTelemetry();
   updateFlightDirector();
@@ -245,6 +320,7 @@ function stageAquariusConsole(): void {
 }
 
 function activateAquariusMission(): void {
+  typingMission = undefined;
   missionClock.reset();
   aquarius.start();
   lastMissionNarration = '';
@@ -260,6 +336,7 @@ function activateAquariusMission(): void {
 }
 
 function leaveAquariusMission(): void {
+  typingMission = undefined;
   cuePlayer.stop();
   aquarius.reset();
   lastMissionNarration = '';
@@ -290,10 +367,7 @@ function updateTraining(): void {
   elements.qualificationStatus.textContent = snapshot.message;
   if (snapshot.message !== lastTrainingNarration) {
     lastTrainingNarration = snapshot.message;
-    if (snapshot.message.startsWith('V35 selected')) appendOperatorEvent('AGC', 'Verb 35 is selected. This is the DSKY lamp-test command; press ENTR to request the channel 013 test relay.');
-    else if (snapshot.message.startsWith('V35 sent')) appendOperatorEvent('AGC', 'Verb 35 has been sent. Waiting for the real LM131R1 output relay that drives the DSKY light test.');
-    else if (snapshot.message.includes('correction') || snapshot.message.includes('CLR')) appendOperatorEvent('CAUTION', snapshot.message);
-    else appendOperatorEvent('INPUT', snapshot.message);
+    if (snapshot.message.includes('correction') || snapshot.message.includes('CLR')) appendOperatorEvent('CAUTION', 'Lamp-test entry needs correction. Clear the current entry and select V35 again.');
   }
   const outcomes = snapshot.events.length ? `${snapshot.events.length} input${snapshot.events.length === 1 ? '' : 's'} · ${snapshot.assistance} correction${snapshot.assistance === 1 ? '' : 's'} · last at cycle ${snapshot.events.at(-1)!.cycle}` : 'No operator inputs recorded.';
   elements.debrief.textContent = outcomes;
@@ -322,6 +396,7 @@ function runExperiment(id: string | undefined): void {
 }
 
 function updateTelemetry(cycle: number): void {
+  if (typingMission) { elements.telemetryTime.textContent = typingMission.epoch; elements.telemetryAlt.textContent = 'NO FLIGHT STATE'; elements.telemetryHdot.textContent = '—'; elements.telemetryVel.textContent = '—'; elements.telemetryProp.textContent = '—'; elements.telemetryDps.textContent = 'NO BURN'; elements.telemetryCycles.textContent = String(cycle); elements.attitudePitch.textContent = '—'; elements.attitudeRoll.textContent = '—'; elements.attitudeYaw.textContent = '—'; elements.attitudeVehicle.setAttribute('transform', 'rotate(0)'); return; }
   const mission = aquarius.snapshot();
   if (aquarius.isRunning() && mission.complete) {
     const [outer, inner, middle] = mission.values;
