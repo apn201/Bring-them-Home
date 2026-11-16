@@ -96,7 +96,7 @@ function handleWorkerMessage(message: WorkerResponse): void {
   for (const output of message.events) {
     dsky.applyChannel(output.channel, output.value);
     if (output.channel === 0o10 && output.value !== 0) elements.channelTen.textContent = output.value.toString(8).padStart(5, '0');
-    if (output.value !== 0 && (output.channel === 0o10 || output.channel === 0o11 || output.channel === 0o163)) appendTrace(`OUT ${output.channel.toString(8).padStart(3, '0')}  ${output.value.toString(8).padStart(5, '0')}`);
+    if (output.value !== 0 && (output.channel === 0o10 || output.channel === 0o11 || output.channel === 0o13 || output.channel === 0o163)) appendTrace(`OUT ${output.channel.toString(8).padStart(3, '0')}  ${output.value.toString(8).padStart(5, '0')}`);
   }
 }
 

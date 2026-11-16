@@ -22,4 +22,18 @@ describe('DskyDecoder', () => {
     decoder.apply(0o10, (10 << 11) | (15 << 5) | 3);
     expect(decoder.snapshot().verb).toBe('41');
   });
+
+  it('honours the channel-013 DSKY light-test relay, including the flashing lamps', () => {
+    const decoder = new DskyDecoder();
+    decoder.apply(0o13, 1 << 9);
+    expect(decoder.snapshot().lamps.size).toBe(14);
+    decoder.apply(0o13, 0);
+    expect(decoder.snapshot().lamps.size).toBe(0);
+  });
+
+  it('maps selector-12 GIMBAL LOCK and TRACKER relay bits without an offset', () => {
+    const decoder = new DskyDecoder();
+    decoder.apply(0o10, (12 << 11) | (1 << 5) | (1 << 7));
+    expect(decoder.snapshot().lamps).toEqual(new Set(['GIMBAL LOCK', 'TRACKER']));
+  });
 });

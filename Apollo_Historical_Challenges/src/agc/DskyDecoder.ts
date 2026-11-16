@@ -15,14 +15,16 @@ const lampNames = ['UPLINK ACTY', 'TEMP', 'NO ATT', 'GIMBAL LOCK', 'STBY', 'PROG
 export class DskyDecoder {
   private state: DskyState = { program: '  ', verb: '  ', noun: '  ', registers: ['     ', '     ', '     '], signs: [' ', ' ', ' '], lamps: new Set() };
   private signBits = [{ minus: false, plus: false }, { minus: false, plus: false }, { minus: false, plus: false }];
+  private lightTest = false;
 
   apply(channel: number, value: number): DskyState {
     if (channel === 0o10) this.applyRelay(value);
     if (channel === 0o11 || channel === 0o163) this.applyLamps(channel, value);
+    if (channel === 0o13) this.applyLightTest(value);
     return this.snapshot();
   }
 
-  snapshot(): DskyState { return { ...this.state, registers: [...this.state.registers] as DskyState['registers'], signs: [...this.state.signs] as DskyState['signs'], lamps: new Set(this.state.lamps) }; }
+  snapshot(): DskyState { return { ...this.state, registers: [...this.state.registers] as DskyState['registers'], signs: [...this.state.signs] as DskyState['signs'], lamps: this.lightTest ? new Set(lampNames) : new Set(this.state.lamps) }; }
 
   private applyRelay(value: number): void {
     const selector = value >> 11;
@@ -56,10 +58,15 @@ export class DskyDecoder {
     this.state = { ...this.state, lamps };
   }
 
+  private applyLightTest(value: number): void { this.lightTest = Boolean(value & (1 << 9)); }
+
   private applyDisplayLamps(value: number): void {
     const lamps = new Set(this.state.lamps);
-    const bits = [5, 6, 7, 8, 9, 10, 12, 13, 14];
-    const names = ['PRIO DISP', 'NO DAP', 'VEL', 'NO ATT', 'ALT', 'GIMBAL LOCK', 'TRACKER', 'PROG', ''] as const;
+    // Selector 12 uses the low relay bits directly: bit 1 is PRIO DISP,
+    // bit 6 is GIMBAL LOCK, and bit 8 is TRACKER (bit numbers are one-based
+    // in the AGC documentation, hence zero-based shifts here).
+    const bits = [0, 1, 2, 3, 4, 5, 7, 8];
+    const names = ['PRIO DISP', 'NO DAP', 'VEL', 'NO ATT', 'ALT', 'GIMBAL LOCK', 'TRACKER', 'PROG'] as const;
     bits.forEach((bit, index) => { const name = names[index]; if (!name) return; if (value & (1 << bit)) lamps.add(name); else lamps.delete(name); });
     this.state = { ...this.state, lamps };
   }
