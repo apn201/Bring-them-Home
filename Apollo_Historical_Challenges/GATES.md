@@ -9,7 +9,7 @@ Preparation completed on 15 November 2026. No application slice is certified com
 | G1 | partial | A dedicated worker now loads the real LM131R1 ROM into the supplied ddc65e7be WASM; worker messages drive the DSKY relay/lamp decoder and a fresh-instance deterministic restart. `npm run build` and input-code unit tests pass. Browser/device smoke, native parity, validated step units and complete snapshots remain. |
 | G2 | partial | Slice 2 now has a project-owned responsive DSKY panel and tested channel-010 relay decoder, full keyboard/pointer controls, annunciator handling, accessible text outputs, and a real worker trace. Browser visual/device and rapid-input integration checks remain. |
 | G3 | partial | Typed phase runtime, worker-cycle clock, deterministic input log, correctable V35 entry recovery, explicit divergence, debrief and fresh-instance restart are implemented and unit-tested. Browser touch, render-rate and hidden-tab integration checks remain. |
-| G4 | partial research | Activation ACT-30 and dictionary PGNS-54 located and visually inspected; audio mapping, finer procedure/units and all release locators remain |
+| G4 | partial research | Activation ACT-30 and dictionary PGNS-54 located and visually inspected. The ACT-30 coarse O/I/M worksheet is unit-tested against the source-derived research cross-check. Audio mapping, full operating-region interpretation, fine procedure/units and all release locators remain. |
 | G5 | pending | Minimal IMU/CDU model, validated historical checkpoints and replay |
 | G6 | pending | Episode audio production and measured synchronisation |
 | G7 | pending | First collection release checks |

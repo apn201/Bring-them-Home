@@ -1,0 +1,10 @@
+{
+  "id": "aquarius-coarse-alignment",
+  "title": "Preserve the platform",
+  "kind": "historical-research-draft",
+  "release": false,
+  "fidelity": "blocked-at-G4-G5",
+  "epoch": "058:00–058:07:15 GET (research target)",
+  "evidence": ["coarse-operation", "cm-angles", "act30-transform", "coarse-format"],
+  "note": "The ACT 30 worksheet calculation is unit-tested. This file is not a playable scenario: checkpoint, IMU/CDU feedback, complete procedure verification and audio alignment remain unresolved."
+}
