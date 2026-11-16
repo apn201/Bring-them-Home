@@ -2,6 +2,7 @@ import './styles/app.css';
 import { keyCodes, type AgcKey } from './agc/KeyCodec';
 import { WorkerClient } from './agc/WorkerClient';
 import type { WorkerResponse } from './agc/protocol';
+import { MissionClock } from './runtime/MissionClock';
 import { QualificationRun } from './runtime/QualificationRun';
 import { DskyView } from './ui/DskyView';
 
@@ -26,7 +27,7 @@ app.innerHTML = `
           <div class="status-line"><span class="pulse"></span><span id="computer-state">Booting original flight software</span></div>
           <h3>Qualification run</h3>
           <ol class="checklist" id="training-list"><li class="active"><b>01</b><span>Press any number to verify the key path.</span></li><li><b>02</b><span>Press <strong>VERB</strong> to begin a verb entry.</span></li><li><b>03</b><span>Enter <strong>35</strong>, then press <strong>ENTR</strong>.</span></li></ol><p class="qualification-status" id="qualification-status">Awaiting a numeric key · 0/3 complete</p><div class="qualification-complete" id="qualification-complete" hidden><strong>QUALIFIED</strong><span>Input route verified. The computer remains live for practice.</span></div>
-          <div class="control-actions"><button class="outline" id="pause-button">Pause</button><button class="outline" id="restart-button">Exact restart</button></div>
+          <div class="control-actions"><button class="outline" id="pause-button">Pause</button><button class="outline" id="restart-button">Exact restart</button></div><details class="training-debrief" open><summary>Training debrief</summary><p id="training-debrief">No operator inputs recorded.</p></details>
           <dl class="telemetry"><div><dt>ENGINE</dt><dd id="engine-version">—</dd></div><div><dt>ERASABLE HASH</dt><dd id="erasable-hash">—</dd></div><div><dt>LAST CHANNEL 010</dt><dd id="channel-ten">AWAITING RELAY</dd></div></dl><details class="debug-stream" open><summary>Live computer trace <span>real worker data</span></summary><div class="core-words" id="core-words">ERASABLE 0000–0007 · —</div><ol id="trace-log" aria-live="polite"></ol></details>
           <p class="checkpoint-note">This is an authored input drill running the Apollo 13 LM131R1 ROM; it is not a historical mission checkpoint. Restart builds a fresh engine and replays the immutable boot sequence.</p>
         </aside>
@@ -49,18 +50,19 @@ const elements = {
   cycles: byId('cycle-readout'), hash: byId('erasable-hash'), channelTen: byId('channel-ten'),
   screenReader: byId('screen-reader-output'), pause: byId<HTMLButtonElement>('pause-button'),
   restart: byId<HTMLButtonElement>('restart-button'), training: byId('training-list'),
-  qualificationStatus: byId('qualification-status'), completion: byId('qualification-complete'), coreWords: byId('core-words'), trace: byId('trace-log'),
+  qualificationStatus: byId('qualification-status'), completion: byId('qualification-complete'), debrief: byId('training-debrief'), coreWords: byId('core-words'), trace: byId('trace-log'),
 };
 let paused = false;
 const qualification = new QualificationRun();
+const missionClock = new MissionClock();
 const traceEntries: string[] = [];
 
 client.addEventListener('message', (event) => handleWorkerMessage((event as CustomEvent<WorkerResponse>).detail));
 client.addEventListener('error', (event) => setFailure((event as CustomEvent<string>).detail));
 dsky.addEventListener('dsky-key', (event) => { const { key, down } = (event as CustomEvent<{ key: AgcKey; down: boolean }>).detail; sendKey(key, down); });
 
-elements.pause.addEventListener('click', () => { paused = !paused; client.pause(paused); elements.pause.textContent = paused ? 'Resume' : 'Pause'; elements.computer.textContent = paused ? 'Paused safely' : 'Running original flight software'; });
-elements.restart.addEventListener('click', () => { qualification.reset(); updateTraining(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; appendTrace('SYSTEM  fresh instance requested'); client.restart(); elements.computer.textContent = 'Rebuilding exact boot state'; });
+elements.pause.addEventListener('click', () => setPaused(!paused));
+elements.restart.addEventListener('click', () => { missionClock.reset(); qualification.reset(); updateTraining(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; appendTrace('SYSTEM  fresh instance requested'); client.restart(); elements.computer.textContent = 'Rebuilding exact boot state'; });
 byId<HTMLButtonElement>('focus-dsky').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('launch-training').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('about-button').addEventListener('click', () => document.querySelector('#fidelity')?.scrollIntoView({ behavior: 'smooth' }));
@@ -73,7 +75,7 @@ window.addEventListener('keydown', (event) => {
 });
 window.addEventListener('keyup', (event) => { if (event.code === 'Space') { event.preventDefault(); client.key('PRO', false); } });
 window.addEventListener('blur', () => client.key('PRO', false));
-document.addEventListener('visibilitychange', () => { if (document.hidden) { client.key('PRO', false); client.pause(true); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { client.key('PRO', false); setPaused(true); } });
 client.start(new URL('wasm/yaAGC.wasm', document.baseURI).href, new URL('roms/LM131R1.bin', document.baseURI).href, 'LM131R1 · Apollo 13 LM ROM');
 
 function handleWorkerMessage(message: WorkerResponse): void {
@@ -81,6 +83,7 @@ function handleWorkerMessage(message: WorkerResponse): void {
   if (message.type === 'error') { setFailure(message.message); return; }
   if (message.type === 'restarted') { dsky.reset(); appendTrace('SYSTEM  fresh instance restored'); elements.computer.textContent = 'Fresh LM131R1 instance restored'; return; }
   if (message.type !== 'frame') return;
+  missionClock.sync(message.cycle);
   elements.cycles.textContent = `CYCLE ${message.cycle.toString().padStart(8, '0')}`;
   elements.hash.textContent = message.erasableHash.toUpperCase();
   elements.coreWords.textContent = `ERASABLE 0000–0007 · ${message.coreWords.map((word) => word.toString(8).padStart(5, '0')).join(' ')}`;
@@ -108,7 +111,7 @@ function appendTrace(entry: string): void {
 }
 
 function recordQualification(key: AgcKey): void {
-  qualification.accept(key);
+  qualification.accept(key, missionClock.snapshot().cycle);
   updateTraining();
 }
 
@@ -117,8 +120,19 @@ function updateTraining(): void {
   const snapshot = qualification.snapshot();
   items.forEach((item, index) => { item.classList.toggle('done', index < snapshot.completedSteps); item.classList.toggle('active', index === snapshot.completedSteps && !snapshot.complete); });
   elements.qualificationStatus.textContent = snapshot.message;
+  const outcomes = snapshot.events.length ? `${snapshot.events.length} input${snapshot.events.length === 1 ? '' : 's'} · ${snapshot.assistance} correction${snapshot.assistance === 1 ? '' : 's'} · last at cycle ${snapshot.events.at(-1)!.cycle}` : 'No operator inputs recorded.';
+  elements.debrief.textContent = outcomes;
   if (snapshot.complete) { elements.completion.hidden = false; elements.computer.textContent = 'Input path qualified — continue exploring the real console'; elements.screenReader.textContent = 'Input qualification complete.'; return; }
+  if (snapshot.diverged) { elements.completion.hidden = true; elements.computer.textContent = 'Training divergence — Exact restart restores the immutable boot state'; elements.screenReader.textContent = 'Training divergence. Exact restart is available.'; return; }
   elements.completion.hidden = true;
+}
+
+function setPaused(next: boolean): void {
+  paused = next;
+  missionClock.setPaused(paused);
+  client.pause(paused);
+  elements.pause.textContent = paused ? 'Resume' : 'Pause';
+  elements.computer.textContent = paused ? 'Paused safely' : 'Running original flight software';
 }
 
 function keyboardKey(event: KeyboardEvent): AgcKey | undefined {
