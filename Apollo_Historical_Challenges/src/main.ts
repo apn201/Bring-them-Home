@@ -5,6 +5,7 @@ import type { WorkerResponse } from './agc/protocol';
 import { MissionClock } from './runtime/MissionClock';
 import { sampleBenchTelemetry } from './runtime/BenchTelemetry';
 import { QualificationRun } from './runtime/QualificationRun';
+import { AQUARIUS_V41_N20_CUE, TranscriptCuePlayer } from './runtime/TranscriptCuePlayer';
 import { DskyView } from './ui/DskyView';
 
 const app = document.querySelector<HTMLDivElement>('#app');
@@ -47,6 +48,11 @@ app.innerHTML = `
 
 const dsky = document.createElement('apollo-dsky') as DskyView;
 document.querySelector('#dsky-mount')?.append(dsky);
+const missionReview = document.createElement('section');
+missionReview.className = 'mission-review';
+missionReview.setAttribute('aria-labelledby', 'mission-review-title');
+missionReview.innerHTML = `<div><p class="eyebrow">02 / EVIDENCE STATION</p><h2 id="mission-review-title">Aquarius: preserve the platform</h2><p>The historical mission is still gated. One reviewed cue is ready: V41 N20 and the first coarse angle at GET 58:02:26.</p></div><div class="mission-cue"><span>VERIFIED CUE</span><strong>V41 N20 · +30243</strong><small>414-AAA Track 1 · 05:07:40<br>PAO line 14230 / TEC line 25146</small><div><button class="outline" id="play-aquarius-cue">Play reviewed cue</button><button class="quiet" id="stop-aquarius-cue">Stop</button></div><p id="aquarius-audio-status" aria-live="polite">Ready for operator-initiated review.</p></div>`;
+document.querySelector('.chapters')?.before(missionReview);
 const client = new WorkerClient();
 const elements = {
   status: byId('engine-status'), computer: byId('computer-state'), version: byId('engine-version'),
@@ -60,6 +66,7 @@ let paused = false;
 const qualification = new QualificationRun();
 const missionClock = new MissionClock();
 const traceEntries: string[] = [];
+const cuePlayer = new TranscriptCuePlayer();
 
 client.addEventListener('message', (event) => handleWorkerMessage((event as CustomEvent<WorkerResponse>).detail));
 client.addEventListener('error', (event) => setFailure((event as CustomEvent<string>).detail));
@@ -70,6 +77,8 @@ elements.restart.addEventListener('click', () => { missionClock.reset(); qualifi
 byId<HTMLButtonElement>('focus-dsky').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('launch-training').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('about-button').addEventListener('click', () => document.querySelector('#fidelity')?.scrollIntoView({ behavior: 'smooth' }));
+byId<HTMLButtonElement>('play-aquarius-cue').addEventListener('click', () => cuePlayer.preview(AQUARIUS_V41_N20_CUE, (message) => { byId('aquarius-audio-status').textContent = message; }));
+byId<HTMLButtonElement>('stop-aquarius-cue').addEventListener('click', () => { cuePlayer.stop(); byId('aquarius-audio-status').textContent = 'Reviewed cue stopped.'; });
 document.querySelectorAll<HTMLButtonElement>('[data-experiment]').forEach((button) => button.addEventListener('click', () => runExperiment(button.dataset.experiment)));
 
 window.addEventListener('keydown', (event) => {
