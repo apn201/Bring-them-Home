@@ -44,7 +44,7 @@
         "state": "two-anchor mapped as public-affairs commentary; not the Aquarius technical loop"
       }
     ],
-    "nextReview": "The Aquarius 02:10:02:26 event falls in the later 415-AAA tape window; inspect the seven tracks at the calculated seek point, establish a spoken TEC anchor, then have the operator approve the excerpt and transcript together.",
+    "nextReview": "415-AAA is now phrase-identified as beginning at PAO 58:46 and later carrying TEC audio, but it begins after Aquarius V41 N20 at 58:02:26. Locate the preceding source transfer for that exchange, then establish its spoken TEC anchor before playback.",
     "aquariusCandidateMap": "content/evidence/aquarius-audio-candidate-map.json"
   }
 }

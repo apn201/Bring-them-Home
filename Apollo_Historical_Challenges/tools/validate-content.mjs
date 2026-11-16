@@ -14,6 +14,7 @@ if (paoAlignment.clockTransform?.recordingOffset !== '01:31:07') throw new Error
 if (paoAlignment.anchors?.[1]?.recordingElapsed !== '06:16:21') throw new Error('PAO alignment must retain the end-of-recording anchor.');
 const aquariusAudioCandidates = JSON.parse(await readFile('content/evidence/aquarius-audio-candidate-map.json', 'utf8'));
 if (aquariusAudioCandidates.release !== false) throw new Error('Aquarius audio candidates must not be released before a spoken-content match.');
-if (aquariusAudioCandidates.aquariusCoarseAlignment?.archiveTape !== '415-AAA') throw new Error('Aquarius coarse alignment must stay mapped to its later tape window.');
 if (aquariusAudioCandidates.aquariusCoarseAlignment?.transcriptLine !== 25146) throw new Error('Aquarius candidate map must retain the TEC source line.');
+if (!aquariusAudioCandidates.aquariusCoarseAlignment?.status?.includes('precedes the verified 415-AAA start')) throw new Error('Aquarius audio must not be assigned to a transfer that begins after the event.');
+if (aquariusAudioCandidates.laterVerifiedTransfer?.anchors?.[0]?.transcriptLine !== 15020) throw new Error('415 PAO start anchor must be retained.');
 console.log(`valid content: ${scenario.id}; historical draft held at ${historicalDraft.fidelity}; archive catalog ${audioCatalog.id}`);
