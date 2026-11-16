@@ -14,11 +14,11 @@ describe('historical campaign',()=>{
   expect(campaign.filter(chapter=>chapter.difficulty===0)).toHaveLength(1);
   expect(campaign.map(chapter=>chapter.epoch)).toEqual([...campaign.map(chapter=>chapter.epoch)].sort((a,b)=>a-b));
   expect(new Set(campaign.flatMap(chapter=>chapter.tasks.map(task=>task.source)))).toEqual(new Set(['direct','manual','radio','panel']));
-  expect(campaign.filter(chapter=>chapter.duration)).toHaveLength(3);
+  expect(campaign.filter(chapter=>chapter.duration)).toHaveLength(4);
   expect(campaign.some(chapter=>chapter.tasks.some(task=>task.kind==='rates'))).toBe(true);
  });
  it.each(campaign.filter(chapter=>chapter.tasks.some(task=>task.kind==='load')).map(chapter=>({chapter,title:chapter.title})))('$title PAD components survive actual ROM load and readback',({chapter})=>{
-  const host=romHarness();prepareImuCheckpoint(chapter.initialAngles,host);
+  const host=romHarness(chapter.rom);prepareImuCheckpoint(chapter.initialAngles,host);
   for(const task of chapter.tasks.filter(task=>task.kind==='load')){
    host.keys(['VERB','2','5','NOUN',...task.noun!.split('') as AgcKey[],'ENTR']);
    for(const value of task.values!)host.keys([value<0?'MINUS':'PLUS',...Math.abs(value).toString().padStart(5,'0').split('') as AgcKey[],'ENTR']);

@@ -1,6 +1,7 @@
 # Generated browser output and installed packages
 Apollo_Historical_Challenges/node_modules/
 Apollo_Historical_Challenges/dist/
+Apollo_Historical_Challenges/release/
 Apollo_Historical_Challenges/*.tsbuildinfo
 
 # Local-only research acquisitions. Their source documents, audio, and historical

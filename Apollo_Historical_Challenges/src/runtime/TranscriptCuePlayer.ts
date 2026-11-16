@@ -1,6 +1,7 @@
 export interface TranscriptAudioCue {
   id: string;
   sourceUrl: string;
+  localSourceUrl?:string;
   sourceLabel: string;
   transcriptLabel: string;
   startSeconds: number;
@@ -10,6 +11,7 @@ export interface TranscriptAudioCue {
 export const AQUARIUS_V41_N20_CUE: TranscriptAudioCue = {
   id: 'aquarius-v41-n20',
   sourceUrl: 'https://archive.org/download/Apollo13Audio/414-AAA_TRACK-1.mp3',
+  localSourceUrl:'audio/aquarius-v41-n20.mp3',
   sourceLabel: '414-AAA Track 1 · public-domain Archive.org transfer',
   transcriptLabel: 'AS13_PAO line 14230 · V41 N20 / +30243',
   // 8 seconds of lead-in before the phrase verified at 05:07:40, followed
@@ -29,14 +31,16 @@ export class TranscriptCuePlayer {
 
   preview(cue: TranscriptAudioCue, onStatus: (message: string) => void): void {
     this.stop();
-    const audio = new Audio(cue.sourceUrl);
+    const audio = new Audio(cue.localSourceUrl?new URL(cue.localSourceUrl,document.baseURI).href:cue.sourceUrl);
+    const playbackStart=cue.localSourceUrl?0:cue.startSeconds;
+    const playbackEnd=cue.localSourceUrl?cueDurationSeconds(cue):cue.endSeconds;
     this.audio = audio;
     audio.preload = 'metadata';
     audio.addEventListener('error', () => onStatus('Archive audio could not be loaded. Check the network connection and retry.'), { once: true });
     audio.addEventListener('loadedmetadata', () => {
       const startPlayback = () => {
         this.timeBoundary = () => {
-          if (audio.currentTime < cue.endSeconds) return;
+          if (audio.currentTime < playbackEnd) return;
           this.stop();
           onStatus('Reviewed cue complete.');
         };
@@ -45,8 +49,8 @@ export class TranscriptCuePlayer {
           onStatus(`Playing reviewed cue · ${formatCueSeconds(cue.startSeconds)}–${formatCueSeconds(cue.endSeconds)}`);
         }).catch(() => onStatus('Playback was blocked by the browser. Press play again to retry.'));
       };
-      audio.addEventListener('seeked', startPlayback, { once: true });
-      audio.currentTime = cue.startSeconds;
+      if(playbackStart===0)startPlayback();
+      else {audio.addEventListener('seeked', startPlayback, { once: true });audio.currentTime=playbackStart;}
     }, { once: true });
     audio.load();
     onStatus('Loading public-domain audio and seeking to the reviewed cue…');

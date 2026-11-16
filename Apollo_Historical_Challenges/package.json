@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "package:game": "tsc -b && node tools/package-game.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "assets:verify": "node tools/verify-runtime-assets.mjs",

@@ -4,6 +4,7 @@ import type { ChannelEvent, WorkerRequest, WorkerResponse } from './protocol';
 import { ImuPeripheral } from './ImuPeripheral';
 import { prepareImuCheckpoint } from './ImuCheckpoint';
 import { SpacecraftDynamics } from './SpacecraftDynamics';
+import { AgcInputQueue } from './AgcInputQueue';
 
 declare const self: DedicatedWorkerGlobalScope;
 type Exports = {
@@ -27,6 +28,7 @@ let preparing = false;
 let preparedEvents: ChannelEvent[] = [];
 let flight: SpacecraftDynamics | undefined;
 let warp = 1;
+const input=new AgcInputQueue();
 
 const post = (message: WorkerResponse): void => self.postMessage(message);
 
@@ -39,11 +41,13 @@ async function handle(message: WorkerRequest): Promise<void> {
   if (!engine) return;
   if (message.type === 'pause') { running = !message.paused; return; }
   if (message.type === 'rcs') { flight?.control(message.axis,message.direction); return; }
+  if (message.type === 'entry') {flight?.beginEntry();return;}
   if (message.type === 'engine') { flight?.engine(message.firing,message.throttle); return; }
-  if (message.type === 'warp') { warp=Math.max(1,Math.min(4,message.factor)); return; }
+  if (message.type === 'warp') { warp=Math.max(1,Math.min(16,message.factor)); return; }
   if (message.type === 'restart') {
     post({ type: 'preparing' }); preparing = true; preparedEvents = [];
     try {
+      if(message.rom){romUrl=new URL(`${message.rom}.bin`,romUrl).href;romName=message.rom;}
       await restart();
       if (message.imuCheckpoint) {
         prepareImuCheckpoint(message.imuCheckpoint, { key: (key) => writeKey(key, true), step: tick });
@@ -56,8 +60,8 @@ async function handle(message: WorkerRequest): Promise<void> {
     } finally { preparing = false; }
     return;
   }
-  writeKey(message.key, message.down);
-  tick(600);
+  if(message.key==='PRO'){writeKey(message.key,message.down);return;}
+  if(message.down)input.push(message.key);
 }
 
 async function start(): Promise<void> {
@@ -90,6 +94,7 @@ async function instantiate(): Promise<void> {
 }
 
 async function loadRom(): Promise<void> {
+  input.reset();
   const response = await fetch(romUrl);
   if (!response.ok) throw new Error(`Could not load LM131R1 ROM (${response.status}).`);
   const rom = new Uint8Array(await response.arrayBuffer());
@@ -111,6 +116,7 @@ function writeKey(key: AgcKey, down: boolean): void {
 function tick(steps: number): void {
   const events: ChannelEvent[] = [];
   for (let remaining = steps; remaining > 0;) {
+    if(!preparing){const key=input.take(cycle);if(key){writeKey(key,true);post({type:'key-processed',key,cycle});}}
     imu.flush((channel, value) => engine.packet_write(channel, value));
     const quantum = Math.min(remaining, 1000);
     if (!preparing && flight) imu.moveEncoders(flight.step(quantum/85333));
@@ -123,7 +129,7 @@ function tick(steps: number): void {
 
 function publishFrame(events: ChannelEvent[]): void {
   const cdu = [...new Uint16Array(memory.buffer, engine.get_erasable_ptr() + 0o32 * 2, 3)].map((word) => (word & 0x7fff) * 360 / 32768);
-  post({ type: 'frame', cycle, events, erasableHash: hashErasable(), coreWords: coreWords(), imuAngles: cdu, flight: flight?.snapshot() });
+  post({ type: 'frame', cycle, events, erasableHash: hashErasable(), coreWords: coreWords(), imuAngles: cdu, flight: flight?.snapshot(),pendingKeys:input.length });
 }
 
 function drain(): ChannelEvent[] {

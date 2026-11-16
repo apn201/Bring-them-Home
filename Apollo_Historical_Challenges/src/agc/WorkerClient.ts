@@ -14,7 +14,8 @@ export class WorkerClient extends EventTarget {
   }
 
   start(wasmUrl: string, romUrl: string, romName: string): void { this.post({ type: 'start', wasmUrl, romUrl, romName }); }
-  restart(imuCheckpoint: readonly number[] = [30243, 34778, 813], flight?: FlightSetup): void { this.post({ type: 'restart', imuCheckpoint, flight }); }
+  restart(imuCheckpoint: readonly number[] = [30243, 34778, 813], flight?: FlightSetup,rom:'LM131R1'|'Manche72R3'='LM131R1'): void { this.post({ type: 'restart', imuCheckpoint, flight,rom }); }
+  entry():void {this.post({type:'entry'});}
   rcs(axis:number,direction:number):void { this.post({type:'rcs',axis,direction}); }
   engine(firing:boolean,throttle?:number):void { this.post({type:'engine',firing,throttle}); }
   warp(factor:number):void { this.post({type:'warp',factor}); }

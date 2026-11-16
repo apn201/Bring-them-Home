@@ -2,6 +2,18 @@
   "schema_version": 1,
   "assets": [
     {
+      "id": "reviewed-aquarius-runtime-cue",
+      "path": "public/audio/aquarius-v41-n20.mp3",
+      "source_url": "https://archive.org/download/Apollo13Audio/414-AAA_TRACK-1.mp3",
+      "source_start_seconds": 18452.0097962466,
+      "source_end_seconds": 18500.022857472683,
+      "bytes": 634158,
+      "sha256": "e53630a3c41a91b2aece69069dc256f93a855ddd283c64a42a952c7818cdd6ac",
+      "status": "lossless MP3 frame cut of user-reviewed original",
+      "scenario_ready": true,
+      "rights_status": "original NASA recording; archive catalogue Public Domain Mark; source attribution retained"
+    },
+    {
       "id": "lm-activation-checklist",
       "path": "assets/documents/77-a13-activation-checklist.pdf",
       "source_url": "https://apollojournals.org/afj/ap13fj/pdf-hr/77-a13-activation-checklist.pdf",

@@ -6,11 +6,15 @@ The activation cue is now user-reviewed and playable: `414-AAA_TRACK-1.mp3`,
 05:07:32–05:08:20, anchored to PAO line 14230 at 05:07:40. See
 `CAMPAIGN_SOURCES.md`. This supersedes the older unresolved coarse-audio row below.
 
-Other current campaign radio prompts are original, clearly labeled reproduced
-readings of sourced PAD data using browser speech synthesis. They are not
-presented as authentic recordings. Written repeat and Stop Radio are available.
-The remaining original-recording acquisition/alignment requirements below still
-apply before replacing those reproduced prompts with archive audio.
+Browser speech has been removed. ElevenLabs skills were available, but neither
+a connected generation tool nor a local API key was available in this session;
+the user's fallback is written comms plus the one reviewed original cue.
+`public/audio/aquarius-v41-n20.mp3` is a lossless MP3-frame cut of that original,
+48.013 seconds, within 0.023 seconds of the reviewed source boundaries.
+`tools/extract-reviewed-cue.mjs` records the extraction procedure. Local playback
+starts at zero, while original source timestamps remain in the cue metadata.
+Burn/RCS rumble and documented alarm frequencies are locally reconstructed
+effects, not authentic recordings. Sound can be muted and vibration disabled.
 
 ## Acquired
 

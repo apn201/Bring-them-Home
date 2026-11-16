@@ -4,12 +4,14 @@ import { spawn } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 const cache=path.resolve('node_modules/.cache'); await mkdir(cache,{recursive:true});
-const server=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','5186','--strictPort'],{windowsHide:true,stdio:'ignore'});
+const release=process.env.APOLLO_RELEASE_DIR;
+const baseUrl='http://127.0.0.1:5186'+(release?'/apollo13/':'/');
+const server=spawn(process.execPath,['node_modules/vite/bin/vite.js',...(release?['preview','--outDir',path.resolve(release),'--base','/apollo13/']:[]),'--host','127.0.0.1','--port','5186','--strictPort'],{windowsHide:true,stdio:'ignore'});
 let browser; let socket;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function waitFor(fn,label){for(let i=0;i<150;i++){try{const result=await fn();if(result)return result;}catch{}await delay(100);}throw Error('Timed out: '+label);}
 try {
-  await waitFor(async()=> (await fetch('http://127.0.0.1:5186')).ok,'isolated Vite');
+  await waitFor(async()=> (await fetch(baseUrl)).ok,'isolated game server');
   browser=spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',['--headless=new','--disable-gpu','--no-first-run','--no-default-browser-check','--remote-debugging-port=9228','--user-data-dir='+path.join(cache,'edge-cockpit-'+Date.now()),'about:blank'],{windowsHide:true,stdio:'ignore'});
   const pages=await waitFor(async()=>{const response=await fetch('http://127.0.0.1:9228/json/list');return response.ok?await response.json():undefined;},'headless Edge');
   socket=new WebSocket(pages.find(page=>page.type==='page').webSocketDebuggerUrl);
@@ -19,9 +21,9 @@ try {
   const call=(method,params={})=>new Promise((resolve,reject)=>{const id=++next;pending.set(id,{resolve,reject});socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(result.exceptionDetails.text);return result.result.value;};
   await call('Runtime.enable'); await call('Page.enable');await call('Emulation.setDeviceMetricsOverride',{width:1918,height:1000,deviceScaleFactor:1,mobile:false});
-  await call('Page.navigate',{url:'http://127.0.0.1:5186/'});
+  await call('Page.navigate',{url:baseUrl});
   await waitFor(()=>evaluate(`document.querySelector('#computer-state')?.textContent.includes('Mission live')`),'initial campaign ready');
-  const type=async keys=>{for(const key of keys){await evaluate(`document.querySelector('apollo-dsky').shadowRoot.querySelector('button[data-key="${key}"]').click()`);await delay(170);}};
+  const type=async keys=>{for(const key of keys){await evaluate(`document.querySelector('apollo-dsky').shadowRoot.querySelector('button[data-key="${key}"]').click()`);await delay(20);}};
   await type(['VERB','3','5','ENTR']);
   await waitFor(()=>evaluate(`document.querySelector('#task-title')?.textContent.includes('Read')`),'training lamp test');
   await type(['VERB','0','6','NOUN','2','0','ENTR']);
@@ -33,6 +35,10 @@ try {
   await evaluate(`document.querySelector('#manual-btn').click()`);
   if(!await evaluate(`document.querySelector('#flight-bag').open&&document.querySelector('#manual-link').href.endsWith('#page=48')`))throw Error('ACT 30 scan/page missing');
   await evaluate(`document.querySelector('#close-bag').click()`);
+  await call('Runtime.evaluate',{expression:`{const NativeAudio=window.Audio;window.Audio=function(...args){const audio=new NativeAudio(...args);window.reviewedAudio=audio;return audio;};document.querySelector('#archive-btn').click();}`,userGesture:true});
+  await waitFor(()=>evaluate(`document.querySelector('#radio-status').textContent.startsWith('Playing reviewed cue')`),'bundled original audio playback');
+  if(!await evaluate(`window.reviewedAudio.currentSrc.includes('/audio/aquarius-v41-n20.mp3')&&window.reviewedAudio.duration>47&&window.reviewedAudio.duration<49&&window.reviewedAudio.currentTime<3`))throw Error('Reviewed audio clip is not local or has wrong boundaries');
+  await evaluate(`document.querySelector('#stop-radio').click()`);
   await type(['VERB','4','1','NOUN','2','0','ENTR']);
   for(const value of ['30243','34778','00813'])await type(['PLUS',...value,'ENTR']);
   await waitFor(()=>evaluate(`document.querySelector('#task-title').textContent==='Read the moving platform'`),'actual platform encoder feedback');
@@ -49,6 +55,8 @@ try {
    await type(['VERB','0','6','NOUN',...noun,'ENTR']);await delay(650);
   }
   await waitFor(()=>evaluate(`!document.querySelector('#burn-controls').hidden`),'burn controls after actual PAD readbacks');
+  await call('Runtime.evaluate',{expression:`document.querySelector('#sound-btn').click()`,userGesture:true});
+  await waitFor(()=>evaluate(`document.querySelector('#sound-btn').textContent==='SOUND: ON'`),'cockpit audio unlocked');
   await evaluate(`document.querySelector('#ignite-btn').click()`);await delay(900);
   if(!await evaluate(`Number.parseFloat(document.querySelector('#dv-value').textContent)>0`))throw Error('Burn did not change velocity');
   if(!await evaluate(`getComputedStyle(document.querySelector('.engine-plume')).opacity!=='0'`))throw Error('Burn plume invisible');
@@ -59,9 +67,11 @@ try {
   // storage. Finish the nominal throttle profile to exercise the success path.
   await evaluate(`document.querySelector('#restart-button').click()`);
   await waitFor(()=>evaluate(`document.querySelector('#computer-state')?.textContent.includes('Mission live')`),'restart retains the selected chapter');
-  const load=async(noun,values)=>{await type(['VERB','2','5','NOUN',...noun,'ENTR']);for(const raw of values)await type([raw[0]==='-'?'MINUS':'PLUS',...raw.slice(1),'ENTR']);await type(['VERB','0','6','NOUN',...noun,'ENTR']);await waitFor(()=>evaluate(`document.querySelector('#computer-state').textContent==='V06 N${noun} / computer readback confirmed'`),'N'+noun+' computer readback');};
+  const load=async(noun,values)=>{await type(['VERB','2','5','NOUN',...noun,'ENTR']);for(const raw of values)await type([raw[0]==='-'?'MINUS':'PLUS',...raw.slice(1),'ENTR']);await type(['VERB','0','6','NOUN',...noun,'ENTR']);await waitFor(()=>evaluate(`document.querySelector('#computer-state').textContent==='V06 N${noun} / computer readback confirmed'&&document.querySelector('#input-state').textContent==='KEYBOARD READY'`),'N'+noun+' computer readback');};
+  await load('33',['+00000','+00000','+00000']);
+  if(!await evaluate(`document.querySelector('#burn-controls').hidden&&document.querySelector('#deviation-btn').hidden&&document.querySelector('#task-state').textContent.includes('PAD NOT VERIFIED')`))throw Error('Zero ignition time escaped verification');
   await load('33',['+00062','+00029','+04284']);
-  if(!await evaluate(`document.querySelector('#event-log').textContent.includes('Stored data differs')`))throw Error('Wrong PAD silently accepted: '+await evaluate(`document.querySelector('#event-log').textContent`));
+  if(!await evaluate(`!document.querySelector('#deviation-btn').hidden&&document.querySelector('#event-log').textContent.includes('operation is NOT verified')`))throw Error('Wrong PAD silently accepted: '+await evaluate(`document.querySelector('#event-log').textContent`));
   await load('33',['+00061','+00029','+04284']);
   await load('81',['-00213','+00041','-00312']);
   await waitFor(()=>evaluate(`!document.querySelector('#burn-controls').hidden`),'corrected PAD authorizes burn');
@@ -85,7 +95,22 @@ try {
   const fits=await evaluate(`(()=>{const r=document.querySelector('#game').getBoundingClientRect();return r.left>=-1&&r.top>=-1&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1&&document.documentElement.scrollWidth<=innerWidth&&document.documentElement.scrollHeight<=innerHeight;})()`);
   if(!fits)throw Error('Embedded cockpit escapes the viewport');
   const embedded=await call('Page.captureScreenshot',{format:'png'});await writeFile(path.join(cache,'campaign-embedded-check.png'),Buffer.from(embedded.data,'base64'));
-  const counts=await evaluate(`document.querySelectorAll('[data-chapter]').length`);if(counts!==6)throw Error('Campaign still contains duplicate training drills');
+  await call('Emulation.setDeviceMetricsOverride',{width:1918,height:1000,deviceScaleFactor:1,mobile:false});
+  const counts=await evaluate(`document.querySelectorAll('[data-chapter]').length`);if(counts!==9)throw Error('Expected nine distinct campaign chapters');
+  await evaluate(`document.querySelector('[data-chapter="5"]').click()`);await waitFor(()=>evaluate(`document.querySelector('#master-alarm').classList.contains('active')`),'battery master alarm');
+  await evaluate(`document.querySelector('#inspect-btn').click();document.querySelector('#master-alarm').click()`);
+  await waitFor(()=>evaluate(`document.querySelector('#task-title').textContent==='Read the moving platform'`),'battery warning diagnosis and acknowledgement');
+  if(!await evaluate(`!document.querySelector('#master-alarm').classList.contains('active')&&document.querySelector('[data-warning="BATTERY 2"]').classList.contains('active')`))throw Error('Acknowledgement erased the fault');
+  await evaluate(`document.querySelector('[data-chapter="8"]').click()`);await waitFor(()=>evaluate(`document.querySelector('#computer-state')?.textContent.includes('Mission live')`),'CM computer ready');
+  if(!await evaluate(`document.querySelector('#computer-location').textContent.includes('ODYSSEY')&&document.querySelectorAll('[data-module]').length===1&&document.querySelector('[data-module="cm"]')`))throw Error('Entry is not CM-only');
+  await load('61',['-02166','-16537','-00001']);
+  await waitFor(()=>evaluate(`!document.querySelector('#report-form').hidden`),'CM entry readback report');
+  await evaluate(`{document.querySelector('#mark-btn').click();const root=document.querySelector('apollo-dsky').shadowRoot;[0,1,2].forEach(i=>{document.querySelector('#report-'+i).value=(root.querySelector('[data-sign="'+i+'"]').textContent==='−'?'-':'+')+root.querySelector('[data-register="'+i+'"]').textContent;});document.querySelector('#report-form').requestSubmit();}`);
+  await waitFor(()=>evaluate(`!document.querySelector('#entry-controls').hidden`),'CM entry begins after rate hold');
+  await evaluate(`document.querySelector('#entry-warp-btn').click();document.querySelector('#entry-warp-btn').click()`);
+  await delay(1500);
+  if(!await evaluate(`Number.parseFloat(document.querySelector('#thrust-value').textContent)<121.92&&document.querySelector('#scene-status').textContent==='ENTRY'`))throw Error('CM entry physics did not advance');
+  const entryImage=await call('Page.captureScreenshot',{format:'png'});await writeFile(path.join(cache,'campaign-entry-check.png'),Buffer.from(entryImage.data,'base64'));
   if(exceptions.length)throw Error('Browser exceptions: '+exceptions.join(', '));
-  console.log(JSON.stringify({trainingCompleted:true,manualPageVerified:true,platformAlignmentVerified:true,padLoadVerified:true,burnPlumeAndVelocity:true,earlyCutoffFails:true,wrongPadRetainedAndCorrected:true,nominalBurnPasses:true,liveGimbalReadback:true,embeddedViewportFits:fits,rateBefore,rateAfter,chapters:counts,screenshot:output,browserExceptions:exceptions}));
+  console.log(JSON.stringify({productionSubpath:!!release,bundledAudioVerified:true,rapidInputPreserved:true,zeroIgnitionBlocked:true,trainingCompleted:true,manualPageVerified:true,platformAlignmentVerified:true,padLoadVerified:true,burnPlumeAndVelocity:true,audioEnabled:true,earlyCutoffFails:true,wrongPadRetainedAndCorrected:true,nominalBurnPasses:true,liveGimbalReadback:true,masterAcknowledgement:true,cmEntryAndRom:true,embeddedViewportFits:fits,rateBefore,rateAfter,chapters:counts,screenshot:output,browserExceptions:exceptions}));
 } finally {socket?.close();browser?.kill();server.kill();}

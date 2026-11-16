@@ -29,3 +29,21 @@ Audio catalogue: https://archive.org/details/Apollo13Audio . Retrieved metadata 
 Apollo Flight Journal provides research guidance and hosted copies of original documents. Its modern commentary and corrected transcript are separately copyrighted; they have not been copied wholesale into this pack. Apollo in Real Time's restored media, synchronisation and other modern editorial work likewise require separate provenance checks before reuse. The final app should use cleared original records and independently authored explanatory text.
 
 No movie clips, astronaut voice clones or NASA endorsement claims are included or required.
+
+## Bundled browser release
+
+The runtime includes LM131R1 and reconstructed Manche72R3 ROMs, the generated
+panel image, and a 48.013-second lossless frame cut of the user-reviewed original
+NASA recording `414-AAA_TRACK-1.mp3`, source interval
+05:07:32.0098–05:08:20.0229. Source:
+https://archive.org/download/Apollo13Audio/414-AAA_TRACK-1.mp3 .
+The recording catalogue carries a Public Domain Mark; no modern commentary or
+restored third-party performance has been added to the clip.
+
+GPL-2.0 text is included as `COPYING-GPL-2.0.txt`. The corresponding emulator
+source is pinned at
+https://github.com/michaelfranzl/virtualagc/tree/ddc65e7bed41f1301921b934fcbaaee93db99dda/yaAGC
+and is also retained in this project's source repository:
+https://github.com/apn201/Space-pilot/tree/main/Apollo_Historical_Challenges/assets/software/webAGC-engine-source .
+Original ROM source/provenance is retained under `assets/software/virtualagc`.
+This notice does not characterize the entire application as public domain.
