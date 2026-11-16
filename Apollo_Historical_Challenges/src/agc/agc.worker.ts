@@ -2,6 +2,7 @@
 import { keyCodes, type AgcKey } from './KeyCodec';
 import type { ChannelEvent, WorkerRequest, WorkerResponse } from './protocol';
 import { ImuPeripheral } from './ImuPeripheral';
+import { prepareImuCheckpoint } from './ImuCheckpoint';
 
 declare const self: DedicatedWorkerGlobalScope;
 type Exports = {
@@ -21,6 +22,8 @@ let romUrl = '';
 let romName = '';
 let imu = new ImuPeripheral();
 let requests = Promise.resolve();
+let preparing = false;
+let preparedEvents: ChannelEvent[] = [];
 
 const post = (message: WorkerResponse): void => self.postMessage(message);
 
@@ -32,7 +35,20 @@ async function handle(message: WorkerRequest): Promise<void> {
   if (message.type === 'start') { wasmUrl = message.wasmUrl; romUrl = message.romUrl; romName = message.romName; await start(); return; }
   if (!engine) return;
   if (message.type === 'pause') { running = !message.paused; return; }
-  if (message.type === 'restart') { await restart(); post({ type: 'restarted' }); tick(10_000); return; }
+  if (message.type === 'restart') {
+    post({ type: 'preparing' }); preparing = true; preparedEvents = [];
+    try {
+      await restart();
+      if (message.imuCheckpoint) {
+        prepareImuCheckpoint(message.imuCheckpoint, { key: (key) => writeKey(key, true), step: tick });
+        const counters = new Uint16Array(memory.buffer, engine.get_erasable_ptr() + 0o32 * 2, 3);
+        if (!message.imuCheckpoint.every((target, index) => { const actual = (counters[index] & 0x7fff) * 360 / 32768; const delta = Math.abs(actual - ((target / 100 % 360 + 360) % 360)); return Math.min(delta, 360 - delta) < 0.06; })) throw new Error('Mission checkpoint failed encoder verification. Restart the assignment.');
+      }
+      preparing = false;
+      post({ type: 'restarted' }); publishFrame(preparedEvents); preparedEvents = [];
+    } finally { preparing = false; }
+    return;
+  }
   writeKey(message.key, message.down);
   tick(600);
 }
@@ -61,7 +77,7 @@ async function instantiate(): Promise<void> {
   const instance = await WebAssembly.instantiate(module, { env: { memory }, wasi_snapshot_preview1: wasi });
   engine = instance.exports as unknown as Exports;
   await loadRom();
-  post({ type: 'ready', engineVersion: cString(engine.version()), rom: romName });
+  if (!preparing) post({ type: 'ready', engineVersion: cString(engine.version()), rom: romName });
   tick(10_000);
 }
 
@@ -92,6 +108,11 @@ function tick(steps: number): void {
     engine.cpu_step(quantum); cycle += quantum; remaining -= quantum;
     events.push(...drain());
   }
+  if (preparing) { preparedEvents.push(...events.filter((event) => [0o10, 0o11, 0o13, 0o163].includes(event.channel))); return; }
+  publishFrame(events);
+}
+
+function publishFrame(events: ChannelEvent[]): void {
   const cdu = [...new Uint16Array(memory.buffer, engine.get_erasable_ptr() + 0o32 * 2, 3)].map((word) => (word & 0x7fff) * 360 / 32768);
   post({ type: 'frame', cycle, events, erasableHash: hashErasable(), coreWords: coreWords(), imuAngles: cdu });
 }

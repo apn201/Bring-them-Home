@@ -28,7 +28,7 @@ export class CommandNarrator {
       const command = `V${this.verb.padStart(2, '0')}${this.verb === '35' ? '' : ` N${this.noun.padStart(2, '0')}`}`;
       if (this.verb === '35') return { kind: 'AGC', command, message: 'Lamp test requested (V35). The computer should illuminate the display and annunciators.' };
       if (this.noun === '20' && this.verb === '41') { this.component = 0; return { kind: 'GUIDANCE', command, message: 'Coarse IMU alignment requested (V41 N20). Enter outer, inner, then middle gimbal angles in hundredths of a degree. These are platform angles, not a spacecraft heading or engine firing.' }; }
-      if (this.noun === '20' && ['06', '16'].includes(this.verb)) return { kind: 'AGC', command, message: `${this.verb === '16' ? 'Continuous angle monitoring' : 'Angle readout'} requested (${command}). R1 is outer, R2 inner, R3 middle gimbal angle; +30343 means +303.43°. Waiting for the computer display.` };
+      if (['20', '22'].includes(this.noun) && ['06', '16'].includes(this.verb)) return { kind: 'AGC', command, message: `${this.verb === '16' ? 'Continuous monitoring' : 'Readout'} of ${this.noun === '22' ? 'desired platform targets' : 'actual gimbal encoders'} requested (${command}). R1 is outer, R2 inner, R3 middle gimbal angle; +30343 means +303.43°. Waiting for the computer display.` };
       return { kind: 'AGC', command, message: `${command} requested. Its effect depends on the active flight program; watch the computer response.` };
     }
     if (this.component >= 0 && this.component < 3) {

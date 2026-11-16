@@ -23,6 +23,6 @@ describe('operator command meaning', () => {
     ['VERB', '3', '5'].forEach((key) => narrator.accept(key as AgcKey));
     expect(narrator.accept('ENTR')?.message).toContain('Lamp test requested');
     ['VERB', '1', '6', 'NOUN', '2', '0'].forEach((key) => narrator.accept(key as AgcKey));
-    expect(narrator.accept('ENTR')?.message).toContain('Continuous angle monitoring');
+    expect(narrator.accept('ENTR')?.message).toContain('Continuous monitoring of actual gimbal encoders');
   });
 });

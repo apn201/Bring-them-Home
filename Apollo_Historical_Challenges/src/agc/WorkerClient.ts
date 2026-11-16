@@ -13,7 +13,7 @@ export class WorkerClient extends EventTarget {
   }
 
   start(wasmUrl: string, romUrl: string, romName: string): void { this.post({ type: 'start', wasmUrl, romUrl, romName }); }
-  restart(): void { this.post({ type: 'restart' }); }
+  restart(imuCheckpoint: readonly number[] = [30243, 34778, 813]): void { this.post({ type: 'restart', imuCheckpoint }); }
   pause(paused: boolean): void { this.post({ type: 'pause', paused }); }
   key(key: AgcKey, down = true): void { this.post({ type: 'key', key, down }); }
   dispose(): void { this.worker.terminate(); }
