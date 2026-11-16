@@ -48,6 +48,23 @@ app.innerHTML = `
     <footer><span>APOLLO HISTORICAL CHALLENGES · DEVELOPMENT BUILD</span><span>LOCAL, NO ACCOUNT · <a href="./THIRD_PARTY_NOTICES.md" target="_blank" rel="noreferrer">NOTICES</a></span></footer>
   </main>`;
 
+// Game shell: intentionally replaces the earlier document-style prototype.
+// The simulator is a fixed cockpit, not a scrolling information site.
+app.innerHTML = `
+  <main class="game-shell">
+    <header class="game-bar">
+      <a class="brand" href="#" aria-label="Apollo Pilot Simulator home"><span class="brand-mark">A</span><span>APOLLO PILOT<br><b>SIMULATOR</b></span></a>
+      <nav class="mission-select" aria-label="Mission select"><button id="launch-training">DSKY QUALIFICATION</button><button id="launch-aquarius">AQUARIUS / 058:02</button></nav>
+      <div class="mission-stamp"><span>AGC FLIGHT COMPUTER</span><strong>LM-131R1</strong><em id="engine-status">INITIALIZING</em></div>
+    </header>
+    <section class="game-stage" aria-label="Apollo pilot simulator cockpit">
+      <article class="dsky-bay game-dsky"><div class="bay-top"><span>DSKY / LIVE RELAY DISPLAY</span><span id="cycle-readout">CYCLE 00000000</span></div><div id="dsky-mount" class="dsky-mount" aria-label="Apollo DSKY instrument"></div><p id="screen-reader-output" class="sr-only" aria-live="polite">Computer loading.</p><div class="key-hints"><span><kbd>V</kbd> VERB</span><span><kbd>N</kbd> NOUN</span><span><kbd>↵</kbd> ENTR</span><span><kbd>Space</kbd> PRO</span><span><kbd>R</kbd> RSET</span></div></article>
+      <section class="game-flight"><section class="flight-monitor" aria-labelledby="flight-monitor-title"><div class="monitor-head"><div><span>FLIGHT DYNAMICS BUS</span><h3 id="flight-monitor-title">Docked CSM + LM</h3></div><p>Live AGC cycle bus · scenario projection marked separately</p></div><div class="monitor-grid"><article class="attitude-card"><svg viewBox="-82 -76 164 152" aria-label="Docked command module and lunar module attitude wireframe"><g class="attitude-reference"><path d="M-70 0H70M0-62V62"/><circle cx="0" cy="0" r="56"/></g><g id="attitude-vehicle"><g class="command-module"><path d="M-16-53H16L10-39H-10Z"/><path d="M-11-39H11M-7-53V-63H7V-53"/><path d="M-24-51 -43-62M24-51 43-62M-46-62h-10M46-62h10"/></g><path class="dock-ring" d="M-12-35H12M-8-32H8"/><g class="lunar-module"><path class="plume" d="M-7 35H7L15 61 0 54 -15 61Z"/><path d="M-5 24H5L9 35H-9Z"/><path d="M-26 8 -49 38M26 8 49 38M-49 39v11M49 39v11M-49 38h-10M49 38h10M0 11v33"/><path d="M-26 4H26V22H-26ZM-13 4V22M13 4V22"/><path d="M-21-20 -13-31H13L21-20V4H-21Z"/><path d="M-17-18H-3V-5H-17ZM3-18H17V-5H3ZM-8-31V-43H8V-31"/><path d="M-18-27 -39-42M18-27 39-42M-34-44h-10M34-44h10"/><path d="M-8 4 8 4M-20 28H20"/></g></g></svg><div class="attitude-readout"><span>VEHICLE <b>CM + LM / DOCKED</b></span><span>PITCH <b id="attitude-pitch">+00.0°</b></span><span>ROLL <b id="attitude-roll">+00.0°</b></span><span>YAW <b id="attitude-yaw">+00.0°</b></span></div></article><article class="vitals-card"><dl><div><dt>T+ CPU</dt><dd id="telemetry-time">00:00:00</dd></div><div><dt>ALT</dt><dd id="telemetry-alt">014.20 km</dd></div><div><dt>HDOT</dt><dd id="telemetry-hdot">+000.0 m/s</dd></div><div><dt>VEL</dt><dd id="telemetry-vel">0000 m/s</dd></div><div><dt>PROP</dt><dd id="telemetry-prop">82.4%</dd></div><div><dt>DPS</dt><dd id="telemetry-dps">0%</dd></div><div><dt>AGC CYCLES</dt><dd id="telemetry-cycles">00000000</dd></div><div><dt>MODE</dt><dd>LM131R1 / DOCKED</dd></div></dl></article></div></section><div id="flight-director-mount"></div></section>
+      <aside class="control-bay game-control"><div class="status-line"><span class="pulse"></span><span id="computer-state">Booting original flight software</span></div><h3>Qualification run</h3><ol class="checklist" id="training-list"><li class="active"><b>01</b><span>Press <strong>VERB</strong> to begin the actual light-test command.</span></li><li><b>02</b><span>Enter <strong>35</strong> to select the DSKY test-lights verb.</span></li><li><b>03</b><span>Press <strong>ENTR</strong> and verify the panel illuminates.</span></li></ol><p class="qualification-status" id="qualification-status">Start the real DSKY light test · press VERB · 0/3 complete</p><div class="qualification-complete" id="qualification-complete" hidden><strong>QUALIFIED</strong><span>Input route verified. Console now open for exploration.</span></div><section class="try-this" id="try-this" hidden aria-labelledby="try-title"><p class="eyebrow" id="try-title">LIVE ROM SHORTCUTS</p><div class="experiment-grid"><button data-experiment="coarse"><b>V41 N20</b><span>Load reviewed alignment</span></button><button data-experiment="angles"><b>V06 N20</b><span>Show ICDU angles</span></button><button data-experiment="monitor"><b>V16 N20</b><span>Monitor angles</span></button><button data-experiment="lights"><b>V35</b><span>Light test</span></button></div></section><div id="mission-review-dock"></div><div class="control-actions"><button class="outline" id="pause-button">Pause</button><button class="outline" id="restart-button">Exact restart</button></div><dl class="telemetry"><div><dt>ENGINE</dt><dd id="engine-version">—</dd></div><div><dt>ERASABLE HASH</dt><dd id="erasable-hash">—</dd></div><div><dt>LAST CHANNEL 010</dt><dd id="channel-ten">AWAITING RELAY</dd></div></dl><details class="debug-stream"><summary>AGC relay trace <span>live worker data</span></summary><div class="core-words" id="core-words">ERASABLE 0000–0007 · —</div><ol id="trace-log" aria-live="polite"></ol></details><details class="training-debrief"><summary>Input log</summary><p id="training-debrief">No operator inputs recorded.</p></details></aside>
+    </section>
+    <footer class="game-footer"><span>APOLLO PILOT SIMULATOR · DEVELOPMENT BUILD</span><span>ENTER COMMANDS. OWN THE CONSEQUENCES.</span></footer>
+  </main>`;
+
 const dsky = document.createElement('apollo-dsky') as DskyView;
 document.querySelector('#dsky-mount')?.append(dsky);
 const missionReview = document.createElement('section');
@@ -58,7 +75,7 @@ const missionProcedure = document.createElement('section');
 missionProcedure.className = 'mission-procedure';
 missionProcedure.innerHTML = `<div><p class="eyebrow">EVIDENCE-GATED REHEARSAL</p><h3>Coarse alignment command set</h3><p>Runs V41 N20 and the reviewed values against the live LM131R1 ROM. The command and audio are historical evidence; the boot state is not an Apollo 13 spacecraft reconstruction.</p></div><div><ol id="aquarius-steps"><li class="active"><b>01</b><span>Enter V41 N20</span></li><li><b>02</b><span>Enter +30243</span></li><li><b>03</b><span>Enter +34778</span></li><li><b>04</b><span>Enter +00813</span></li></ol><div class="mission-actions"><button class="outline" id="start-aquarius-rehearsal">Take the hotseat</button><button class="quiet" id="leave-aquarius-rehearsal">Return to training</button></div><p id="aquarius-rehearsal-status" aria-live="polite">Audio cue reviewed · rehearsal not staged.</p><div class="mission-explore" id="mission-explore" hidden><span>LIVE ROM OPEN</span><p>Type your own verbs and nouns, or inspect the resulting angles.</p><button class="outline" id="show-icdu-angles">Display V06 N20</button></div></div>`;
 missionReview.append(missionProcedure);
-document.querySelector('.chapters')?.before(missionReview);
+document.querySelector('#mission-review-dock')?.append(missionReview);
 const guidanceTelemetry = document.createElement('div');
 guidanceTelemetry.className = 'guidance-telemetry';
 guidanceTelemetry.innerHTML = '<dt>GUIDANCE</dt><dd id="guidance-mode">TRAINING BENCH</dd><dd id="guidance-target">No mission target loaded</dd><small id="guidance-effect">No mission command active.</small>';
@@ -67,7 +84,7 @@ const flightDirector = document.createElement('section');
 flightDirector.className = 'flight-director';
 flightDirector.setAttribute('aria-labelledby', 'flight-director-title');
 flightDirector.innerHTML = `<header><div><span>FLIGHT DIRECTOR / TRAJECTORY REPLAY</span><h3 id="flight-director-title">The long way home</h3></div><strong id="flight-path-state">WAITING FOR GUIDANCE INPUT</strong></header><div class="flight-director-grid"><div class="trajectory-screen"><svg viewBox="0 0 100 100" role="img" aria-label="Apollo 13 mission geometry with historical and player guidance paths"><defs><pattern id="trajectory-grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none"/></pattern></defs><rect width="100" height="100" class="trajectory-grid"/><path id="flight-path-reference" class="flight-path reference"/><path id="flight-path-player" class="flight-path player"/><circle class="earth-marker" cx="12" cy="68" r="5"/><circle class="moon-marker" cx="91" cy="34" r="3.8"/><circle class="aquarius-marker" cx="61" cy="25" r="1.8"/><text x="5" y="79">EARTH</text><text x="83" y="27">MOON</text><text x="63" y="22">AQUARIUS</text></svg><div class="path-key"><span><i class="reference"></i> DOCUMENTED APOLLO 13</span><span><i class="player"></i> YOUR GUIDANCE PATH</span></div></div><aside><dl><div><dt>MISSION GET</dt><dd>058:02:26</dd></div><div><dt>ACTIVE EVENT</dt><dd>V41 N20 / COARSE ALIGN</dd></div><div><dt>NEXT CRITICAL BURN</dt><dd>FREE RETURN / 061:29:43</dd></div></dl><p id="flight-path-note">V41 N20 loads alignment data. The documented free-return and PC+2 path are shown for mission context.</p><p class="trajectory-disclaimer">Mission-phase geometry from the Apollo 13 timeline. Player trace is a consequence projection, not a navigation-grade orbital solution.</p></aside></div>`;
-document.querySelector('.flight-monitor')?.after(flightDirector);
+document.querySelector('#flight-director-mount')?.append(flightDirector);
 const aquariusChapter = document.querySelector<HTMLElement>('.chapter-grid .chapter:nth-child(2)');
 if (aquariusChapter) {
   aquariusChapter.classList.remove('held');
@@ -106,9 +123,7 @@ dsky.addEventListener('dsky-key', (event) => { const { key, down } = (event as C
 
 elements.pause.addEventListener('click', () => setPaused(!paused));
 elements.restart.addEventListener('click', () => { const restartMission = aquarius.isRunning(); missionClock.reset(); qualification.reset(); aquarius.reset(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; missionAnglesQueued = false; if (restartMission) { aquarius.start(); stageAquariusConsole(); updateAquarius(); appendTrace('MISSION  Aquarius rehearsal restarted'); elements.computer.textContent = 'Aquarius rehearsal restored to a fresh ROM'; } else { updateTraining(); updateAquarius(); appendTrace('SYSTEM  fresh instance requested'); elements.computer.textContent = 'Rebuilding exact boot state'; } client.restart(); });
-byId<HTMLButtonElement>('focus-dsky').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
-byId<HTMLButtonElement>('launch-training').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
-byId<HTMLButtonElement>('about-button').addEventListener('click', () => document.querySelector('#fidelity')?.scrollIntoView({ behavior: 'smooth' }));
+byId<HTMLButtonElement>('launch-training').addEventListener('click', () => { if (aquarius.isRunning()) leaveAquariusMission(); });
 byId<HTMLButtonElement>('play-aquarius-cue').addEventListener('click', () => cuePlayer.preview(AQUARIUS_V41_N20_CUE, (message) => { byId('aquarius-audio-status').textContent = message; }));
 byId<HTMLButtonElement>('stop-aquarius-cue').addEventListener('click', () => { cuePlayer.stop(); byId('aquarius-audio-status').textContent = 'Reviewed cue stopped.'; });
 byId<HTMLButtonElement>('start-aquarius-rehearsal').addEventListener('click', activateAquariusMission);
@@ -209,7 +224,6 @@ function activateAquariusMission(): void {
   client.restart();
   elements.computer.textContent = 'Aquarius hotseat staged — enter V41 N20';
   updateAquarius();
-  document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' });
 }
 
 function leaveAquariusMission(): void {
@@ -217,7 +231,7 @@ function leaveAquariusMission(): void {
   aquarius.reset();
   missionAnglesQueued = false;
   missionReview.classList.remove('mission-console');
-  document.querySelector('.chapters')?.before(missionReview);
+  document.querySelector('#mission-review-dock')?.append(missionReview);
   missionClock.reset();
   qualification.reset();
   updateTraining();
