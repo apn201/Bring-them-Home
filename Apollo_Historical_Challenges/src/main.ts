@@ -55,9 +55,15 @@ missionReview.setAttribute('aria-labelledby', 'mission-review-title');
 missionReview.innerHTML = `<div><p class="eyebrow">02 / EVIDENCE STATION</p><h2 id="mission-review-title">Aquarius: preserve the platform</h2><p>The historical mission is still gated. One reviewed cue is ready: V41 N20 and the first coarse angle at GET 58:02:26.</p></div><div class="mission-cue"><span>VERIFIED CUE</span><strong>V41 N20 · +30243</strong><small>414-AAA Track 1 · 05:07:40<br>PAO line 14230 / TEC line 25146</small><div><button class="outline" id="play-aquarius-cue">Play reviewed cue</button><button class="quiet" id="stop-aquarius-cue">Stop</button></div><p id="aquarius-audio-status" aria-live="polite">Ready for operator-initiated review.</p></div>`;
 const missionProcedure = document.createElement('section');
 missionProcedure.className = 'mission-procedure';
-missionProcedure.innerHTML = `<div><p class="eyebrow">EVIDENCE-GATED REHEARSAL</p><h3>Coarse alignment command set</h3><p>Runs V41 N20 and the reviewed values against the live LM131R1 ROM. The command and audio are historical evidence; the boot state is not an Apollo 13 spacecraft reconstruction.</p></div><div><ol id="aquarius-steps"><li class="active"><b>01</b><span>Enter V41 N20</span></li><li><b>02</b><span>Enter +30243</span></li><li><b>03</b><span>Enter +34778</span></li><li><b>04</b><span>Enter +00813</span></li></ol><button class="outline" id="start-aquarius-rehearsal">Stage fresh ROM rehearsal</button><p id="aquarius-rehearsal-status" aria-live="polite">Audio cue reviewed · rehearsal not staged.</p></div>`;
+missionProcedure.innerHTML = `<div><p class="eyebrow">EVIDENCE-GATED REHEARSAL</p><h3>Coarse alignment command set</h3><p>Runs V41 N20 and the reviewed values against the live LM131R1 ROM. The command and audio are historical evidence; the boot state is not an Apollo 13 spacecraft reconstruction.</p></div><div><ol id="aquarius-steps"><li class="active"><b>01</b><span>Enter V41 N20</span></li><li><b>02</b><span>Enter +30243</span></li><li><b>03</b><span>Enter +34778</span></li><li><b>04</b><span>Enter +00813</span></li></ol><div class="mission-actions"><button class="outline" id="start-aquarius-rehearsal">Take the hotseat</button><button class="quiet" id="leave-aquarius-rehearsal">Return to training</button></div><p id="aquarius-rehearsal-status" aria-live="polite">Audio cue reviewed · rehearsal not staged.</p></div>`;
 missionReview.append(missionProcedure);
 document.querySelector('.chapters')?.before(missionReview);
+const aquariusChapter = document.querySelector<HTMLElement>('.chapter-grid .chapter:nth-child(2)');
+if (aquariusChapter) {
+  aquariusChapter.classList.remove('held');
+  aquariusChapter.classList.add('available');
+  aquariusChapter.innerHTML = '<span class="chapter-no">02</span><p class="eyebrow">AQUARIUS · EVIDENCE-GATED</p><h3>Preserve the platform</h3><p>Take the hotseat for the reviewed V41 N20 command set. Audio and command values are verified; the wider spacecraft state remains explicitly unreconstructed.</p><button class="text-button" id="launch-aquarius">Take the hotseat <span>→</span></button>';
+}
 const client = new WorkerClient();
 const elements = {
   status: byId('engine-status'), computer: byId('computer-state'), version: byId('engine-version'),
@@ -80,19 +86,22 @@ const aquarius = new AquariusCoarseRun();
 const missionClock = new MissionClock();
 const traceEntries: string[] = [];
 const cuePlayer = new TranscriptCuePlayer();
+let missionAnglesQueued = false;
 
 client.addEventListener('message', (event) => handleWorkerMessage((event as CustomEvent<WorkerResponse>).detail));
 client.addEventListener('error', (event) => setFailure((event as CustomEvent<string>).detail));
 dsky.addEventListener('dsky-key', (event) => { const { key, down } = (event as CustomEvent<{ key: AgcKey; down: boolean }>).detail; sendKey(key, down); });
 
 elements.pause.addEventListener('click', () => setPaused(!paused));
-elements.restart.addEventListener('click', () => { missionClock.reset(); qualification.reset(); aquarius.reset(); updateTraining(); updateAquarius(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; appendTrace('SYSTEM  fresh instance requested'); client.restart(); elements.computer.textContent = 'Rebuilding exact boot state'; });
+elements.restart.addEventListener('click', () => { const restartMission = aquarius.isRunning(); missionClock.reset(); qualification.reset(); aquarius.reset(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; missionAnglesQueued = false; if (restartMission) { aquarius.start(); stageAquariusConsole(); updateAquarius(); appendTrace('MISSION  Aquarius rehearsal restarted'); elements.computer.textContent = 'Aquarius rehearsal restored to a fresh ROM'; } else { updateTraining(); updateAquarius(); appendTrace('SYSTEM  fresh instance requested'); elements.computer.textContent = 'Rebuilding exact boot state'; } client.restart(); });
 byId<HTMLButtonElement>('focus-dsky').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('launch-training').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('about-button').addEventListener('click', () => document.querySelector('#fidelity')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('play-aquarius-cue').addEventListener('click', () => cuePlayer.preview(AQUARIUS_V41_N20_CUE, (message) => { byId('aquarius-audio-status').textContent = message; }));
 byId<HTMLButtonElement>('stop-aquarius-cue').addEventListener('click', () => { cuePlayer.stop(); byId('aquarius-audio-status').textContent = 'Reviewed cue stopped.'; });
-byId<HTMLButtonElement>('start-aquarius-rehearsal').addEventListener('click', () => { missionClock.reset(); aquarius.start(); stageAquariusConsole(); dsky.reset(); traceEntries.length = 0; appendTrace('MISSION  Aquarius V41 N20 rehearsal staged'); client.restart(); elements.computer.textContent = 'Aquarius evidence rehearsal staged'; updateAquarius(); document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }); });
+byId<HTMLButtonElement>('start-aquarius-rehearsal').addEventListener('click', activateAquariusMission);
+byId<HTMLButtonElement>('launch-aquarius').addEventListener('click', activateAquariusMission);
+byId<HTMLButtonElement>('leave-aquarius-rehearsal').addEventListener('click', leaveAquariusMission);
 document.querySelectorAll<HTMLButtonElement>('[data-experiment]').forEach((button) => button.addEventListener('click', () => runExperiment(button.dataset.experiment)));
 
 window.addEventListener('keydown', (event) => {
@@ -151,16 +160,55 @@ function updateAquarius(): void {
   items.forEach((item, index) => { item.classList.toggle('done', index < snapshot.completedSteps); item.classList.toggle('active', aquarius.isRunning() && index === snapshot.completedSteps && !snapshot.complete); });
   if (!aquarius.isRunning()) { elements.aquariusStatus.textContent = 'Audio cue reviewed · rehearsal not staged.'; return; }
   elements.aquariusStatus.textContent = snapshot.message;
-  if (snapshot.complete) { elements.computer.textContent = 'V41 N20 evidence rehearsal complete'; elements.screenReader.textContent = 'Aquarius evidence rehearsal complete.'; }
+  if (snapshot.complete) {
+    elements.computer.textContent = 'V41 N20 accepted — displaying live ICDU angles';
+    elements.screenReader.textContent = 'Aquarius command set accepted. Displaying the resulting ICDU angles.';
+    if (!missionAnglesQueued) { missionAnglesQueued = true; window.setTimeout(() => runExperiment('angles'), 650); }
+  }
 }
 
 function stageAquariusConsole(): void {
+  const controlBay = document.querySelector<HTMLElement>('.control-bay');
+  const actions = controlBay?.querySelector('.control-actions');
+  if (controlBay && actions) controlBay.insertBefore(missionReview, actions);
+  missionReview.classList.add('mission-console');
   controlTitle.textContent = 'Aquarius rehearsal';
   elements.training.dataset.mode = 'aquarius';
   elements.training.innerHTML = '<li class="active"><b>01</b><span>Enter <strong>V41 N20</strong>.</span></li><li><b>02</b><span>Enter <strong>+30243</strong>.</span></li><li><b>03</b><span>Enter <strong>+34778</strong>, then <strong>+00813</strong>.</span></li>';
-  elements.qualificationStatus.textContent = 'Evidence-gated rehearsal · reviewed command set · 0/4 complete';
+  elements.qualificationStatus.textContent = 'Type a wrong key? Press CLR to clear the DSKY, then restart V41 N20.';
   elements.completion.hidden = true;
   elements.tryThis.hidden = true;
+}
+
+function activateAquariusMission(): void {
+  missionClock.reset();
+  aquarius.start();
+  missionAnglesQueued = false;
+  stageAquariusConsole();
+  dsky.reset();
+  traceEntries.length = 0;
+  appendTrace('MISSION  Aquarius V41 N20 rehearsal staged');
+  client.restart();
+  elements.computer.textContent = 'Aquarius hotseat staged — enter V41 N20';
+  updateAquarius();
+  document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function leaveAquariusMission(): void {
+  cuePlayer.stop();
+  aquarius.reset();
+  missionAnglesQueued = false;
+  missionReview.classList.remove('mission-console');
+  document.querySelector('.chapters')?.before(missionReview);
+  missionClock.reset();
+  qualification.reset();
+  updateTraining();
+  updateAquarius();
+  dsky.reset();
+  traceEntries.length = 0;
+  appendTrace('SYSTEM  returned to training bench');
+  client.restart();
+  elements.computer.textContent = 'Training bench restored';
 }
 
 function updateTraining(): void {
