@@ -3,6 +3,7 @@ import { keyCodes, type AgcKey } from './agc/KeyCodec';
 import { WorkerClient } from './agc/WorkerClient';
 import type { WorkerResponse } from './agc/protocol';
 import { MissionClock } from './runtime/MissionClock';
+import { sampleBenchTelemetry } from './runtime/BenchTelemetry';
 import { QualificationRun } from './runtime/QualificationRun';
 import { DskyView } from './ui/DskyView';
 
@@ -27,11 +28,13 @@ app.innerHTML = `
           <div class="status-line"><span class="pulse"></span><span id="computer-state">Booting original flight software</span></div>
           <h3>Qualification run</h3>
           <ol class="checklist" id="training-list"><li class="active"><b>01</b><span>Press any number to verify the key path.</span></li><li><b>02</b><span>Press <strong>VERB</strong> to begin a verb entry.</span></li><li><b>03</b><span>Enter <strong>35</strong>, then press <strong>ENTR</strong>.</span></li></ol><p class="qualification-status" id="qualification-status">Awaiting a numeric key · 0/3 complete</p><div class="qualification-complete" id="qualification-complete" hidden><strong>QUALIFIED</strong><span>Input route verified. The computer remains live for practice.</span></div>
+          <section class="try-this" id="try-this" hidden aria-labelledby="try-title"><p class="eyebrow" id="try-title">TRY THE LIVE ROM</p><p>These are real LM131R1 verb/noun paths. They are available after qualification.</p><div class="experiment-grid"><button data-experiment="lights"><b>V35 ENTR</b><span>Test DSKY lights</span></button><button data-experiment="angles"><b>V06 N20 ENTR</b><span>Display ICDU angles</span></button><button data-experiment="monitor"><b>V16 N20 ENTR</b><span>Monitor ICDU angles</span></button></div></section>
           <div class="control-actions"><button class="outline" id="pause-button">Pause</button><button class="outline" id="restart-button">Exact restart</button></div><details class="training-debrief" open><summary>Training debrief</summary><p id="training-debrief">No operator inputs recorded.</p></details>
           <dl class="telemetry"><div><dt>ENGINE</dt><dd id="engine-version">—</dd></div><div><dt>ERASABLE HASH</dt><dd id="erasable-hash">—</dd></div><div><dt>LAST CHANNEL 010</dt><dd id="channel-ten">AWAITING RELAY</dd></div></dl><details class="debug-stream" open><summary>Live computer trace <span>real worker data</span></summary><div class="core-words" id="core-words">ERASABLE 0000–0007 · —</div><ol id="trace-log" aria-live="polite"></ol></details>
           <p class="checkpoint-note">This is an authored input drill running the Apollo 13 LM131R1 ROM; it is not a historical mission checkpoint. Restart builds a fresh engine and replays the immutable boot sequence.</p>
         </aside>
       </div>
+      <section class="flight-monitor" aria-labelledby="flight-monitor-title"><div class="monitor-head"><div><span>03 / INSTRUMENT BUS</span><h3 id="flight-monitor-title">Training flight dynamics</h3></div><p>Worker-cycle fed · Bench vector only · Not Apollo flight telemetry</p></div><div class="monitor-grid"><article class="attitude-card"><svg viewBox="0 0 120 120" aria-label="Lunar module attitude silhouette"><circle cx="60" cy="60" r="51"/><path d="M60 4v15M60 101v15M4 60h15M101 60h15"/><g id="attitude-vehicle"><path d="M60 25 75 47 69 75H51L45 47Z"/><path d="M45 47 31 62M75 47 89 62M51 75 40 91M69 75 80 91"/><path d="M42 92h36"/></g></svg><div class="attitude-readout"><span>PITCH <b id="attitude-pitch">+00.0°</b></span><span>ROLL <b id="attitude-roll">+00.0°</b></span><span>YAW <b id="attitude-yaw">+00.0°</b></span></div></article><article class="vitals-card"><dl><div><dt>T+ CPU</dt><dd id="telemetry-time">00:00:00</dd></div><div><dt>ALT <small>bench</small></dt><dd id="telemetry-alt">014.20 km</dd></div><div><dt>HDOT <small>bench</small></dt><dd id="telemetry-hdot">+000.0 m/s</dd></div><div><dt>VEL <small>bench</small></dt><dd id="telemetry-vel">0000 m/s</dd></div><div><dt>PROP <small>bench</small></dt><dd id="telemetry-prop">82.4%</dd></div><div><dt>DPS <small>bench</small></dt><dd id="telemetry-dps">0%</dd></div><div><dt>AGC CYCLES</dt><dd id="telemetry-cycles">00000000</dd></div><div><dt>MODE</dt><dd>LM131R1 / P00</dd></div></dl></article></div></section>
     </section>
     <section class="chapters" aria-labelledby="chapters-title"><div class="section-label"><span>02 / EPISODES</span><h2 id="chapters-title">The first collection</h2><p>Short missions, not a fictional free-flight simulator.</p></div><div class="chapter-grid">
       <article class="chapter available"><span class="chapter-no">01</span><p class="eyebrow">TRAINING · AVAILABLE</p><h3>DSKY Qualification</h3><p>Learn the instrument through real computer responses. This is a modern training exercise, not a reconstructed Apollo event.</p><button class="text-button" id="launch-training">Load console <span>→</span></button></article>
@@ -50,7 +53,8 @@ const elements = {
   cycles: byId('cycle-readout'), hash: byId('erasable-hash'), channelTen: byId('channel-ten'),
   screenReader: byId('screen-reader-output'), pause: byId<HTMLButtonElement>('pause-button'),
   restart: byId<HTMLButtonElement>('restart-button'), training: byId('training-list'),
-  qualificationStatus: byId('qualification-status'), completion: byId('qualification-complete'), debrief: byId('training-debrief'), coreWords: byId('core-words'), trace: byId('trace-log'),
+  qualificationStatus: byId('qualification-status'), completion: byId('qualification-complete'), debrief: byId('training-debrief'), coreWords: byId('core-words'), trace: byId('trace-log'), tryThis: byId<HTMLElement>('try-this'),
+  telemetryTime: byId('telemetry-time'), telemetryAlt: byId('telemetry-alt'), telemetryHdot: byId('telemetry-hdot'), telemetryVel: byId('telemetry-vel'), telemetryProp: byId('telemetry-prop'), telemetryDps: byId('telemetry-dps'), telemetryCycles: byId('telemetry-cycles'), attitudePitch: byId('attitude-pitch'), attitudeRoll: byId('attitude-roll'), attitudeYaw: byId('attitude-yaw'), attitudeVehicle: bySvgId('attitude-vehicle'),
 };
 let paused = false;
 const qualification = new QualificationRun();
@@ -66,6 +70,7 @@ elements.restart.addEventListener('click', () => { missionClock.reset(); qualifi
 byId<HTMLButtonElement>('focus-dsky').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('launch-training').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('about-button').addEventListener('click', () => document.querySelector('#fidelity')?.scrollIntoView({ behavior: 'smooth' }));
+document.querySelectorAll<HTMLButtonElement>('[data-experiment]').forEach((button) => button.addEventListener('click', () => runExperiment(button.dataset.experiment)));
 
 window.addEventListener('keydown', (event) => {
   if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -84,6 +89,7 @@ function handleWorkerMessage(message: WorkerResponse): void {
   if (message.type === 'restarted') { dsky.reset(); appendTrace('SYSTEM  fresh instance restored'); elements.computer.textContent = 'Fresh LM131R1 instance restored'; return; }
   if (message.type !== 'frame') return;
   missionClock.sync(message.cycle);
+  updateTelemetry(message.cycle);
   elements.cycles.textContent = `CYCLE ${message.cycle.toString().padStart(8, '0')}`;
   elements.hash.textContent = message.erasableHash.toUpperCase();
   elements.coreWords.textContent = `ERASABLE 0000–0007 · ${message.coreWords.map((word) => word.toString(8).padStart(5, '0')).join(' ')}`;
@@ -122,10 +128,38 @@ function updateTraining(): void {
   elements.qualificationStatus.textContent = snapshot.message;
   const outcomes = snapshot.events.length ? `${snapshot.events.length} input${snapshot.events.length === 1 ? '' : 's'} · ${snapshot.assistance} correction${snapshot.assistance === 1 ? '' : 's'} · last at cycle ${snapshot.events.at(-1)!.cycle}` : 'No operator inputs recorded.';
   elements.debrief.textContent = outcomes;
-  if (snapshot.complete) { elements.completion.hidden = false; elements.computer.textContent = 'Input path qualified — continue exploring the real console'; elements.screenReader.textContent = 'Input qualification complete.'; return; }
-  if (snapshot.diverged) { elements.completion.hidden = true; elements.computer.textContent = 'Training divergence — Exact restart restores the immutable boot state'; elements.screenReader.textContent = 'Training divergence. Exact restart is available.'; return; }
-  elements.completion.hidden = true;
+  if (snapshot.complete) { elements.completion.hidden = false; elements.tryThis.hidden = false; elements.computer.textContent = 'Input path qualified — continue exploring the real console'; elements.screenReader.textContent = 'Input qualification complete.'; return; }
+  if (snapshot.diverged) { elements.completion.hidden = true; elements.tryThis.hidden = true; elements.computer.textContent = 'Training divergence — Exact restart restores the immutable boot state'; elements.screenReader.textContent = 'Training divergence. Exact restart is available.'; return; }
+  elements.completion.hidden = true; elements.tryThis.hidden = true;
 }
+
+function runExperiment(id: string | undefined): void {
+  const commands: Record<string, readonly AgcKey[]> = {
+    lights: ['VERB', '3', '5', 'ENTR'],
+    angles: ['VERB', '0', '6', 'NOUN', '2', '0', 'ENTR'],
+    monitor: ['VERB', '1', '6', 'NOUN', '2', '0', 'ENTR'],
+  };
+  const keys = id ? commands[id] : undefined;
+  if (!keys) return;
+  keys.forEach((key, index) => window.setTimeout(() => sendKey(key), index * 145));
+}
+
+function updateTelemetry(cycle: number): void {
+  const sample = sampleBenchTelemetry(cycle);
+  elements.telemetryTime.textContent = sample.elapsed;
+  elements.telemetryAlt.textContent = `${sample.altitudeKm.toFixed(2).padStart(6, '0')} km`;
+  elements.telemetryHdot.textContent = `${sample.altitudeRateMps >= 0 ? '+' : ''}${sample.altitudeRateMps.toFixed(1).padStart(5, '0')} m/s`;
+  elements.telemetryVel.textContent = `${sample.velocityMps.toFixed(0).padStart(4, '0')} m/s`;
+  elements.telemetryProp.textContent = `${sample.propellantPercent.toFixed(1)}%`;
+  elements.telemetryDps.textContent = `${sample.throttlePercent.toFixed(0)}%`;
+  elements.telemetryCycles.textContent = cycle.toString().padStart(8, '0');
+  elements.attitudePitch.textContent = formatAngle(sample.pitchDeg);
+  elements.attitudeRoll.textContent = formatAngle(sample.rollDeg);
+  elements.attitudeYaw.textContent = formatAngle(sample.yawDeg);
+  elements.attitudeVehicle.setAttribute('transform', `rotate(${sample.rollDeg.toFixed(2)} 60 60) translate(${sample.yawDeg.toFixed(2)} ${(-sample.pitchDeg).toFixed(2)})`);
+}
+
+function formatAngle(value: number): string { return `${value >= 0 ? '+' : ''}${value.toFixed(1).padStart(4, '0')}°`; }
 
 function setPaused(next: boolean): void {
   paused = next;
@@ -145,3 +179,4 @@ function keyboardKey(event: KeyboardEvent): AgcKey | undefined {
 
 function setFailure(message: string): void { elements.status.textContent = 'OFFLINE'; elements.computer.textContent = message; elements.screenReader.textContent = `Computer error: ${message}`; }
 function byId<T extends HTMLElement = HTMLElement>(id: string): T { const element = document.getElementById(id); if (!element) throw new Error(`Missing ${id}`); return element as T; }
+function bySvgId(id: string): SVGGElement { const element = document.getElementById(id); if (!(element instanceof SVGGElement)) throw new Error(`Missing SVG ${id}`); return element; }
