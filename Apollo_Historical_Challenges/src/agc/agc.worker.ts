@@ -1,11 +1,12 @@
 /// <reference lib="webworker" />
 import { keyCodes, type AgcKey } from './KeyCodec';
 import type { ChannelEvent, WorkerRequest, WorkerResponse } from './protocol';
+import { ImuPeripheral } from './ImuPeripheral';
 
 declare const self: DedicatedWorkerGlobalScope;
 type Exports = {
   malloc(size: number): number; free(pointer: number): void; set_fixed(pointer: number): void;
-  cpu_reset(): void; cpu_step(steps: number): void; packet_write(channel: number, value: number): void;
+  cpu_reset(): void; cpu_step(steps: number): void; packet_write(channel: number, value: number): number;
   packet_read(): number; version(): number; get_erasable_ptr(): number;
 };
 
@@ -18,11 +19,13 @@ let interval: number | undefined;
 let wasmUrl = '';
 let romUrl = '';
 let romName = '';
+let imu = new ImuPeripheral();
+let requests = Promise.resolve();
 
 const post = (message: WorkerResponse): void => self.postMessage(message);
 
 self.addEventListener('message', ({ data }: MessageEvent<WorkerRequest>) => {
-  void handle(data).catch((error: unknown) => post({ type: 'error', message: error instanceof Error ? error.message : String(error) }));
+  requests = requests.then(() => handle(data)).catch((error: unknown) => post({ type: 'error', message: error instanceof Error ? error.message : String(error) }));
 });
 
 async function handle(message: WorkerRequest): Promise<void> {
@@ -42,6 +45,7 @@ async function start(): Promise<void> {
 }
 
 async function instantiate(): Promise<void> {
+  imu = new ImuPeripheral();
   memory = new WebAssembly.Memory({ initial: 5 });
   const wasi = {
     fd_close: (): number => 0,
@@ -70,7 +74,7 @@ async function loadRom(): Promise<void> {
   engine.set_fixed(pointer); engine.free(pointer); engine.cpu_reset(); cycle = 0;
 }
 
-async function restart(): Promise<void> { await loadRom(); }
+async function restart(): Promise<void> { const resume = running; running = false; try { await instantiate(); } finally { running = resume; } }
 
 function writeKey(key: AgcKey, down: boolean): void {
   if (key === 'PRO') { engine.packet_write(0o32, down ? 1 << 13 : 0); return; }
@@ -81,9 +85,15 @@ function writeKey(key: AgcKey, down: boolean): void {
 }
 
 function tick(steps: number): void {
-  engine.cpu_step(steps); cycle += steps;
-  const events = drain();
-  post({ type: 'frame', cycle, events, erasableHash: hashErasable(), coreWords: coreWords() });
+  const events: ChannelEvent[] = [];
+  for (let remaining = steps; remaining > 0;) {
+    imu.flush((channel, value) => engine.packet_write(channel, value));
+    const quantum = Math.min(remaining, 1000);
+    engine.cpu_step(quantum); cycle += quantum; remaining -= quantum;
+    events.push(...drain());
+  }
+  const cdu = [...new Uint16Array(memory.buffer, engine.get_erasable_ptr() + 0o32 * 2, 3)].map((word) => (word & 0x7fff) * 360 / 32768);
+  post({ type: 'frame', cycle, events, erasableHash: hashErasable(), coreWords: coreWords(), imuAngles: cdu });
 }
 
 function drain(): ChannelEvent[] {
@@ -91,6 +101,7 @@ function drain(): ChannelEvent[] {
   for (let guard = 0; guard < 10_000; guard += 1) {
     const packet = engine.packet_read() >>> 0;
     if (packet === 0) break;
+    imu.applyOutput(packet >>> 16, packet & 0xffff);
     events.push({ channel: packet >>> 16, value: packet & 0xffff, cycle });
   }
   return events;

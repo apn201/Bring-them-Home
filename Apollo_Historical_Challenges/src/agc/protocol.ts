@@ -10,6 +10,6 @@ export type WorkerRequest =
 
 export type WorkerResponse =
   | { type: 'ready'; engineVersion: string; rom: string }
-  | { type: 'frame'; cycle: number; events: ChannelEvent[]; erasableHash: string; coreWords: number[] }
+  | { type: 'frame'; cycle: number; events: ChannelEvent[]; erasableHash: string; coreWords: number[]; imuAngles: number[] }
   | { type: 'restarted' }
   | { type: 'error'; message: string };

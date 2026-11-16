@@ -58,7 +58,7 @@ app.innerHTML = `
   <main class="game-shell">
     <header class="game-bar">
       <a class="brand" href="#" aria-label="Apollo Pilot Simulator home"><span class="brand-mark">A</span><span>APOLLO PILOT<br><b>SIMULATOR</b></span></a>
-      <nav class="mission-select" aria-label="Mission select"><button id="launch-training">DSKY QUALIFICATION</button><button id="launch-aquarius">AQUARIUS / 058:02</button><button id="toggle-expert" aria-pressed="false">EXPERT: OFF</button><button id="open-brief">MISSION BRIEF</button></nav>
+      <nav class="mission-select" aria-label="Game controls"><span id="current-assignment">DSKY Qualification</span><button id="toggle-expert" aria-pressed="false">EXPERT: OFF</button><button id="open-brief">COMMAND REFERENCE</button></nav>
       <div class="mission-stamp"><span>AGC FLIGHT COMPUTER</span><strong>LM-131R1</strong><em id="engine-status">INITIALIZING</em></div>
     </header>
     <section class="game-stage" aria-label="Apollo pilot simulator cockpit">
@@ -71,11 +71,13 @@ app.innerHTML = `
   </main>`;
 
 const dsky = document.createElement('apollo-dsky') as DskyView;
+document.querySelectorAll('.attitude-readout span').forEach((span, index) => { if (index > 0 && span.firstChild) span.firstChild.textContent = ['VEHICLE', 'MIDDLE GIMBAL', 'OUTER GIMBAL', 'INNER GIMBAL'][index]; });
+document.querySelectorAll('.mission-brief dl div').forEach((entry) => { const term = entry.querySelector('dt')?.textContent; const description = entry.querySelector('dd'); if (description && term === 'VERB 06 NOUN 20') description.textContent = 'Displays actual ICDU encoder angles: outer in R1, inner in R2, middle in R3, in hundredths of a degree. The IMU servo returns encoder pulses to the emulated AGC.'; if (description && term === 'V41 N20 / AQUARIUS') description.textContent = 'Starts coarse alignment of the inertial platform. Enter the three target angles. The ROM emits gimbal motor-drive pulses; the IMU model returns encoder feedback. This moves the platform inside the ship and does not fire spacecraft thrusters.'; });
 document.querySelector('#dsky-mount')?.append(dsky);
 const missionReview = document.createElement('section');
 missionReview.className = 'mission-review';
 missionReview.setAttribute('aria-labelledby', 'mission-review-title');
-missionReview.innerHTML = `<div><p class="eyebrow">02 / EVIDENCE STATION</p><h2 id="mission-review-title">Aquarius: preserve the platform</h2><p>The historical mission is still gated. One reviewed cue is ready: V41 N20 and the first coarse angle at GET 58:02:26.</p></div><div class="mission-cue"><span>VERIFIED CUE</span><strong>V41 N20 · +30243</strong><small>414-AAA Track 1 · 05:07:40<br>PAO line 14230 / TEC line 25146</small><div><button class="outline" id="play-aquarius-cue">Play reviewed cue</button><button class="quiet" id="stop-aquarius-cue">Stop</button></div><p id="aquarius-audio-status" aria-live="polite">Ready for operator-initiated review.</p></div>`;
+missionReview.innerHTML = `<div><p class="eyebrow">CREW / GROUND</p><h2 id="mission-review-title">Aquarius radio</h2></div><div class="mission-cue"><span>REVIEWED MISSION AUDIO</span><strong>Coarse alignment instructions</strong><small>414-AAA Track 1 · 05:07:40</small><div><button class="outline" id="play-aquarius-cue">Listen to radio cue</button><button class="quiet" id="stop-aquarius-cue">Stop</button></div><p id="aquarius-audio-status" aria-live="polite">Radio cue ready.</p></div>`;
 const missionProcedure = document.createElement('section');
 missionProcedure.className = 'mission-procedure';
 missionProcedure.innerHTML = `<div><p class="eyebrow">EVIDENCE-GATED REHEARSAL</p><h3>Coarse alignment command set</h3><p>Runs V41 N20 and the reviewed values against the live LM131R1 ROM. The command and audio are historical evidence; the boot state is not an Apollo 13 spacecraft reconstruction.</p></div><div><ol id="aquarius-steps"><li class="active"><b>01</b><span>Enter V41 N20</span></li><li><b>02</b><span>Enter +30243</span></li><li><b>03</b><span>Enter +34778</span></li><li><b>04</b><span>Enter +00813</span></li></ol><div class="mission-actions"><button class="outline" id="start-aquarius-rehearsal">Take the hotseat</button><button class="quiet" id="leave-aquarius-rehearsal">Return to training</button></div><p id="aquarius-rehearsal-status" aria-live="polite">Audio cue reviewed · rehearsal not staged.</p><div class="mission-explore" id="mission-explore" hidden><span>LIVE ROM OPEN</span><p>Type your own verbs and nouns, or inspect the resulting angles.</p><button class="outline" id="show-icdu-angles">Display V06 N20</button></div></div>`;
@@ -97,13 +99,14 @@ eventConsole.innerHTML = '<header><span>GUIDANCE EVENT CONSOLE</span><strong id=
 document.querySelector('.game-flight')?.append(eventConsole);
 const missionSelectButton = document.createElement('button');
 missionSelectButton.textContent = 'MISSIONS';
-document.querySelector('.mission-select')?.append(missionSelectButton);
+document.querySelector('.mission-select')?.prepend(missionSelectButton);
 const missionMenu = document.createElement('dialog');
 missionMenu.className = 'mission-brief';
-missionMenu.innerHTML = `<header><div><span>APOLLO 13 / PROCEDURE REHEARSALS</span><h2>Select your assignment</h2></div><button class="quiet" data-close-missions>Close</button></header><div class="mission-choices">${typingMissions.map((mission) => `<button data-mission="${mission.id}"><b>${mission.title}</b><span>${mission.epoch}</span><p>${mission.situation}</p></button>`).join('')}</div>`;
+missionMenu.innerHTML = `<header><div><span>APOLLO PILOT / ALL ASSIGNMENTS</span><h2>Select your assignment</h2></div><button class="quiet" data-close-missions>Close</button></header><div class="mission-choices"><button id="launch-training"><b>DSKY Qualification</b><span>Training bench</span><p>Test the instrument and explore the flight computer.</p></button><button id="launch-aquarius"><b>Aquarius / Preserve the platform</b><span>Mission elapsed time: 58 hours, 2 minutes</span><p>Enter the three coarse-alignment targets, allow the IMU to respond, then verify the actual gimbal angles.</p></button>${typingMissions.map((mission) => `<button data-mission="${mission.id}"><b>${mission.title}</b><span>${mission.epoch}</span><p>${mission.situation}</p></button>`).join('')}</div>`;
 document.querySelector('.game-shell')?.append(missionMenu);
 missionSelectButton.addEventListener('click', () => missionMenu.showModal());
 missionMenu.querySelector('[data-close-missions]')?.addEventListener('click', () => missionMenu.close());
+missionMenu.addEventListener('click', (event) => { if ((event.target as HTMLElement).closest('#launch-training, #launch-aquarius')) missionMenu.close(); });
 missionMenu.querySelectorAll<HTMLButtonElement>('[data-mission]').forEach((button) => button.addEventListener('click', () => { const mission = typingMissions.find((candidate) => candidate.id === button.dataset.mission); if (mission) startTypingMission(mission); missionMenu.close(); }));
 const aquariusChapter = document.querySelector<HTMLElement>('.chapter-grid .chapter:nth-child(2)');
 if (aquariusChapter) {
@@ -149,6 +152,9 @@ let readoutStarted = 0;
 let readoutWaitReported = false;
 let lastRequestedCommand = '';
 let operatorErrorReported = false;
+let rawOperatorError = false;
+let actualImuAngles = [0, 0, 0];
+let alignmentConfirmed = false;
 let feedbackTimer: number | undefined;
 let typingMission: TypingMission | undefined;
 let typingTask = 0;
@@ -187,11 +193,12 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) { cli
 client.start(new URL('wasm/yaAGC.wasm', document.baseURI).href, new URL('roms/LM131R1.bin', document.baseURI).href, 'LM131R1 · Apollo 13 LM ROM');
 
 function handleWorkerMessage(message: WorkerResponse): void {
-  if (message.type === 'ready' || message.type === 'restarted') { lastRequestedCommand = ''; operatorErrorReported = false; }
+  if (message.type === 'ready' || message.type === 'restarted') { lastRequestedCommand = ''; operatorErrorReported = false; rawOperatorError = false; alignmentConfirmed = false; }
   if (message.type === 'ready') { elements.status.textContent = 'ONLINE'; elements.computer.textContent = 'LM131R1 ready — select a key'; elements.version.textContent = message.engineVersion; appendOperatorEvent('SYSTEM', 'The real LM131R1 ROM is online. Select a mission or enter a verb and noun.'); return; }
   if (message.type === 'error') { setFailure(message.message); return; }
   if (message.type === 'restarted') { dsky.reset(); narrator.reset(); feedbackDecoder = new DskyDecoder(); pendingReadout = false; window.clearTimeout(feedbackTimer); appendTrace('SYSTEM  fresh instance restored'); elements.computer.textContent = 'Fresh LM131R1 instance restored'; return; }
   if (message.type !== 'frame') return;
+  actualImuAngles = message.imuAngles;
   missionClock.sync(message.cycle);
   updateTelemetry(message.cycle);
   elements.cycles.textContent = `CYCLE ${message.cycle.toString().padStart(8, '0')}`;
@@ -200,11 +207,12 @@ function handleWorkerMessage(message: WorkerResponse): void {
   for (const output of message.events) {
     dsky.applyChannel(output.channel, output.value);
     feedbackDecoder.apply(output.channel, output.value);
+    if (output.channel === 0o11) { const error = Boolean(output.value & 0o100); if (error && !rawOperatorError && lastRequestedCommand && lastRequestedCommand !== 'V35' && !operatorErrorReported) { operatorErrorReported = true; appendOperatorEvent('CAUTION', `${lastRequestedCommand}: the AGC has raised a new operator error. Check the current flashing verb/noun and your entry before continuing.`); } rawOperatorError = error; }
     if (output.channel === 0o13 && Boolean(output.value & (1 << 9)) && !lightTestObserved) { lightTestObserved = true; appendOperatorEvent('AGC', 'Lamp test active: the computer has switched on the annunciator-test relay. Check the illuminated legends and numeric display.'); advanceTypingMission('V35', true); }
     if (output.channel === 0o10 && output.value !== 0) elements.channelTen.textContent = output.value.toString(8).padStart(5, '0');
     if (output.value !== 0 && (output.channel === 0o10 || output.channel === 0o11 || output.channel === 0o13 || output.channel === 0o163)) appendTrace(`OUT ${output.channel.toString(8).padStart(3, '0')}  ${output.value.toString(8).padStart(5, '0')}`);
   }
-  if (lastRequestedCommand && lastRequestedCommand !== 'V35' && !operatorErrorReported && feedbackDecoder.snapshot().lamps.has('OPR ERR')) { operatorErrorReported = true; appendOperatorEvent('CAUTION', `${lastRequestedCommand}: the computer is signaling OPR ERR. Check the verb, noun and parameter range; the requested operation is not confirmed.`); }
+  updateGuidanceTelemetry();
   if (pendingReadout && !feedbackTimer) feedbackTimer = window.setTimeout(reportReadout, 800);
 }
 
@@ -248,7 +256,7 @@ function appendOperatorEvent(kind: 'SYSTEM' | 'INPUT' | 'AGC' | 'GUIDANCE' | 'CA
   operatorEvents.push(entry); if (operatorEvents.length > 5) operatorEvents.shift();
   elements.eventLog.innerHTML = operatorEvents.join('');
   elements.eventLog.scrollTop = elements.eventLog.scrollHeight;
-  elements.eventSummary.textContent = kind === 'CAUTION' ? 'CAUTION / OPERATOR ACTION REQUIRED' : `${kind} / ${message.slice(0, 42).toUpperCase()}`;
+  elements.eventSummary.textContent = kind === 'CAUTION' ? 'CHECK COMPUTER RESPONSE' : kind === 'AGC' ? 'COMPUTER RESPONSE' : kind === 'GUIDANCE' ? 'GUIDANCE OPERATION' : 'SYSTEM STATUS';
 }
 
 function recordQualification(key: AgcKey): void {
@@ -264,6 +272,7 @@ function startTypingMission(mission: TypingMission): void {
   lightTestObserved = false;
   elements.training.dataset.mode = 'aquarius';
   controlTitle.textContent = mission.title;
+  byId('current-assignment').textContent = mission.title;
   elements.training.innerHTML = mission.tasks.map((task, index) => `<li class="${index === 0 ? 'active' : ''}"><b>0${index + 1}</b><span>${task.label}<br><strong>${task.command} ENTR</strong></span></li>`).join('');
   elements.qualificationStatus.textContent = mission.situation;
   elements.completion.hidden = true; elements.tryThis.hidden = true;
@@ -307,6 +316,7 @@ function updateAquarius(): void {
 }
 
 function stageAquariusConsole(): void {
+  byId('current-assignment').textContent = 'Aquarius / Preserve the platform';
   const controlBay = document.querySelector<HTMLElement>('.control-bay');
   const actions = controlBay?.querySelector('.control-actions');
   if (controlBay && actions) controlBay.insertBefore(missionReview, actions);
@@ -320,6 +330,7 @@ function stageAquariusConsole(): void {
 }
 
 function activateAquariusMission(): void {
+  alignmentConfirmed = false;
   typingMission = undefined;
   missionClock.reset();
   aquarius.start();
@@ -336,6 +347,7 @@ function activateAquariusMission(): void {
 }
 
 function leaveAquariusMission(): void {
+  byId('current-assignment').textContent = 'DSKY Qualification';
   typingMission = undefined;
   cuePlayer.stop();
   aquarius.reset();
@@ -397,9 +409,8 @@ function runExperiment(id: string | undefined): void {
 
 function updateTelemetry(cycle: number): void {
   if (typingMission) { elements.telemetryTime.textContent = typingMission.epoch; elements.telemetryAlt.textContent = 'NO FLIGHT STATE'; elements.telemetryHdot.textContent = '—'; elements.telemetryVel.textContent = '—'; elements.telemetryProp.textContent = '—'; elements.telemetryDps.textContent = 'NO BURN'; elements.telemetryCycles.textContent = String(cycle); elements.attitudePitch.textContent = '—'; elements.attitudeRoll.textContent = '—'; elements.attitudeYaw.textContent = '—'; elements.attitudeVehicle.setAttribute('transform', 'rotate(0)'); return; }
-  const mission = aquarius.snapshot();
-  if (aquarius.isRunning() && mission.complete) {
-    const [outer, inner, middle] = mission.values;
+  if (aquarius.isRunning()) {
+    const [outer, inner, middle] = actualImuAngles;
     elements.telemetryTime.textContent = 'GET 58:02:26';
     elements.telemetryAlt.textContent = 'NO BURN';
     elements.telemetryHdot.textContent = '0.0 m/s';
@@ -407,9 +418,9 @@ function updateTelemetry(cycle: number): void {
     elements.telemetryProp.textContent = 'UNCHANGED';
     elements.telemetryDps.textContent = '0%';
     elements.telemetryCycles.textContent = cycle.toString().padStart(8, '0');
-    elements.attitudePitch.textContent = formatAlignment(middle);
-    elements.attitudeRoll.textContent = formatAlignment(outer);
-    elements.attitudeYaw.textContent = formatAlignment(inner);
+    elements.attitudePitch.textContent = `${middle.toFixed(2)}°`;
+    elements.attitudeRoll.textContent = `${outer.toFixed(2)}°`;
+    elements.attitudeYaw.textContent = `${inner.toFixed(2)}°`;
     elements.attitudeVehicle.setAttribute('transform', 'rotate(0) translate(0 0)');
     return;
   }
@@ -439,7 +450,10 @@ function updateGuidanceTelemetry(): void {
   const historical = mission.historicalReplay === true;
   elements.guidanceMode.textContent = historical ? 'DOCUMENTED APOLLO 13 TARGET' : 'ALTERNATE GUIDANCE TARGET';
   elements.guidanceTarget.textContent = `O ${formatAlignment(outer)} · I ${formatAlignment(inner)} · M ${formatAlignment(middle)}`;
-  elements.guidanceEffect.textContent = historical ? 'This reviewed checklist is an alignment-data entry. It commands no physical turn, RCS firing, or DPS burn.' : 'The rehearsal recorded an alternate target. It no longer follows the Apollo 13 reference, and its return outcome is not yet solved by a verified trajectory model.';
+  const aligned = actualImuAngles.every((angle, index) => { const delta = Math.abs(angle - ((mission.values[index] / 100 % 360 + 360) % 360)); return Math.min(delta, 360 - delta) < 0.06; });
+  elements.guidanceMode.textContent = aligned ? 'IMU ALIGNMENT CONFIRMED' : 'IMU SERVOS / ALIGNING';
+  elements.guidanceEffect.textContent = `Encoder feedback: O ${actualImuAngles[0].toFixed(2)}° · I ${actualImuAngles[1].toFixed(2)}° · M ${actualImuAngles[2].toFixed(2)}°. ${aligned ? 'Platform reached the requested angles.' : 'Waiting for the gimbal drive and encoder counters to settle.'}`;
+  if (aligned && !alignmentConfirmed) { alignmentConfirmed = true; appendOperatorEvent('AGC', `IMU alignment confirmed by encoder feedback: outer ${actualImuAngles[0].toFixed(2)}°, inner ${actualImuAngles[1].toFixed(2)}°, middle ${actualImuAngles[2].toFixed(2)}°. Type V06 N20 ENTR to read these angles on the DSKY. The platform moved; the spacecraft has not been commanded to turn.`); }
 }
 
 function updateFlightDirector(): void {
