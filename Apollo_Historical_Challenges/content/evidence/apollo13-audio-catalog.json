@@ -1,0 +1,40 @@
+{
+  "id": "apollo13-audio-archive",
+  "source": "https://archive.org/details/Apollo13Audio",
+  "rights": "Public Domain Mark 1.0",
+  "release": false,
+  "purpose": "Research catalog only. No audio is shipped or played until an exact time-to-transcript synchronization is reviewed.",
+  "transcripts": [
+    {
+      "id": "as13-cm",
+      "role": "onboard-voice",
+      "title": "Apollo 13 Onboard Voice Transcription",
+      "url": "https://dn801309.us.archive.org/0/items/Apollo13Audio/AS13_CM_djvu.txt",
+      "timing": "OCR text; individual voice events need source-time verification"
+    },
+    {
+      "id": "as13-pao",
+      "role": "public-affairs-commentary",
+      "title": "Apollo 13 Mission Commentary",
+      "url": "https://dn801309.us.archive.org/0/items/Apollo13Audio/AS13_PAO_djvu.txt",
+      "timing": "Commentary tape sequence; not suitable as a direct technical-event clock"
+    },
+    {
+      "id": "as13-tec",
+      "role": "technical-air-to-ground",
+      "title": "Apollo 13 Technical Air-to-Ground Voice Transcription",
+      "url": "https://dn801309.us.archive.org/0/items/Apollo13Audio/AS13_TEC_djvu.txt",
+      "timing": "DD HH MM SS mission elapsed time",
+      "verifiedEvent": {
+        "missionTime": "02:10:02:26",
+        "topic": "Aquarius coarse alignment — VERB 41 NOUN 20 and first coarse angle",
+        "state": "text-located; audio tape mapping pending review"
+      }
+    }
+  ],
+  "audio": {
+    "state": "unmapped",
+    "collectionNote": "The collection contains large multitrack FLAC/MP3/Ogg transfers plus named edited clips. File names alone are not sufficient to assert transcript synchronization.",
+    "nextReview": "Identify the source tape for 02:10:02:26, establish its offset against AS13_TEC, then have the operator approve the excerpt and transcript together."
+  }
+}
