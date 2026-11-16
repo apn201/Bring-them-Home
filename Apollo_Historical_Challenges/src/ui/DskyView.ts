@@ -27,7 +27,7 @@ export class DskyView extends HTMLElement {
   connectedCallback(): void {
     this.root.innerHTML = `<style>${styles}</style><section class="instrument" aria-label="Live Apollo-style display and keyboard"><img class="panel-photo" src="./images/dsky-front-dsky-v2.png" alt="Front-on period guidance-computer instrument panel"><div class="photo-tint" aria-hidden="true"></div><div class="lamp-overlay" aria-hidden="true">${dskyLamps.map((lamp) => {
       const position = lampPositions[lamp];
-      return position ? `<i class="lamp" data-lamp="${lamp}" style="--x:${position[0]}%;--y:${position[1]}%;--w:${position[2]}%;--h:${position[3]}%"></i><span aria-hidden="true" style="position:absolute;left:${position[0]}%;top:${position[1]}%;width:${position[2]}%;height:${position[3]}%;display:grid;place-items:center;color:#e0dfc9;font:700 clamp(6px,.95vw,10px)/1 ui-monospace,monospace;letter-spacing:.01em;text-align:center;text-shadow:0 1px 1px #172018">${lampLabels[lamp]}</span>` : '';
+      return position ? `<i class="lamp" data-lamp="${lamp}" style="--x:${position[0]}%;--y:${position[1]}%;--w:${position[2]}%;--h:${position[3]}%"></i><span data-lamp-label="${lamp}" aria-hidden="true" style="position:absolute;left:${position[0]}%;top:${position[1]}%;width:${position[2]}%;height:${position[3]}%;display:grid;place-items:center;color:#e0dfc9;font:700 clamp(6px,.95vw,10px)/1 ui-monospace,monospace;letter-spacing:.01em;text-align:center;text-shadow:0 1px 1px #172018">${lampLabels[lamp]}</span>` : '';
     }).join('')}</div><div class="display" aria-live="polite"><span class="field-label program-label">PROG</span><span class="field-label verb-label">VERB</span><span class="field-label noun-label">NOUN</span><output class="program" data-field="program">  </output><output class="verb" data-field="verb">  </output><output class="noun" data-field="noun">  </output><div class="registers">${[0, 1, 2].map((row) => `<div class="register"><output class="sign" data-sign="${row}"> </output><output data-register="${row}">     </output></div>`).join('')}</div></div><div class="keypad">${keys.map((key) => { const [x, y] = keyPositions[key]; return `<button data-key="${key}" style="--x:${x}%;--y:${y}%" aria-label="${key.replace('_', ' ')}">${keyLabels[key]}</button>`; }).join('')}</div><span class="photo-credit">PROJECT-GENERATED PANEL · LIVE RELAY OVERLAY</span></section>`;
     this.root.querySelectorAll<HTMLButtonElement>('button[data-key]').forEach((button) => {
       const key = button.dataset.key as DskyKey;
@@ -45,6 +45,11 @@ export class DskyView extends HTMLElement {
     this.root.querySelector<HTMLOutputElement>('[data-field="noun"]')!.textContent = state.noun;
     state.registers.forEach((value, row) => { this.root.querySelector<HTMLOutputElement>(`[data-register="${row}"]`)!.textContent = value; this.root.querySelector<HTMLOutputElement>(`[data-sign="${row}"]`)!.textContent = state.signs[row]; });
     this.root.querySelectorAll<HTMLElement>('[data-lamp]').forEach((lamp) => lamp.classList.toggle('on', state.lamps.has(lamp.dataset.lamp!)));
+    this.root.querySelectorAll<HTMLElement>('[data-lamp-label]').forEach((label) => {
+      const lit = state.lamps.has(label.dataset.lampLabel!);
+      label.style.color = lit ? '#172116' : '#e0dfc9';
+      label.style.textShadow = lit ? '0 1px 1px #f5ffcf' : '0 1px 1px #172018';
+    });
   }
 
   reset(): void {
@@ -53,6 +58,7 @@ export class DskyView extends HTMLElement {
     this.root.querySelectorAll<HTMLOutputElement>('[data-register]').forEach((field) => { field.textContent = '     '; });
     this.root.querySelectorAll<HTMLOutputElement>('[data-sign]').forEach((field) => { field.textContent = ' '; });
     this.root.querySelectorAll<HTMLElement>('[data-lamp]').forEach((lamp) => lamp.classList.remove('on'));
+    this.root.querySelectorAll<HTMLElement>('[data-lamp-label]').forEach((label) => { label.style.color = '#e0dfc9'; label.style.textShadow = '0 1px 1px #172018'; });
   }
 
   private dispatch(key: DskyKey, down: boolean): void { this.dispatchEvent(new CustomEvent<{ key: DskyKey; down: boolean }>('dsky-key', { detail: { key, down }, bubbles: true })); }
