@@ -1,0 +1,36 @@
+{
+  "id": "apollo13-aquarius-audio-candidate-map",
+  "release": false,
+  "method": "Archive tape metadata gives a GET window for each seven-track transfer. A transcript event inside that window can be translated to a seek offset, but track identity still requires a spoken-content anchor.",
+  "knownMappedTransfer": {
+    "transfer": "405-AAA_TRACK-1",
+    "role": "PAO commentary",
+    "transcript": "AS13_PAO_djvu.txt",
+    "mappedTranscriptRange": {
+      "firstVerifiedLine": 526,
+      "lastVerifiedLine": 3277
+    },
+    "evidence": "content/evidence/405-aaa-track-1-pao-alignment.json"
+  },
+  "aquariusCoarseAlignment": {
+    "transcript": "AS13_TEC_djvu.txt",
+    "transcriptLine": 25146,
+    "missionTime": "02:10:02:26",
+    "archiveTape": "415-AAA",
+    "tapeMissionWindow": {
+      "start": "56:47:00",
+      "end": "64:47:00"
+    },
+    "candidateSeek": "01:15:15.26",
+    "candidateTracks": [
+      "https://archive.org/download/Apollo13Audio/415-AAA_TRACK-1.mp3",
+      "https://archive.org/download/Apollo13Audio/415-AAA_TRACK-2.mp3",
+      "https://archive.org/download/Apollo13Audio/415-AAA_TRACK-3.mp3",
+      "https://archive.org/download/Apollo13Audio/415-AAA_TRACK-4.mp3",
+      "https://archive.org/download/Apollo13Audio/415-AAA_TRACK-5.mp3",
+      "https://archive.org/download/Apollo13Audio/415-AAA_TRACK-6.mp3",
+      "https://archive.org/download/Apollo13Audio/415-AAA_TRACK-7.mp3"
+    ],
+    "status": "window-mapped; track signal path and exact spoken offset unverified"
+  }
+}

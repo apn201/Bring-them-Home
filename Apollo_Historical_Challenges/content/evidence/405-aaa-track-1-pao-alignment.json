@@ -1,0 +1,35 @@
+{
+  "id": "apollo13-pao-405-aaa-track-1",
+  "release": false,
+  "audio": {
+    "remoteUrl": "https://archive.org/download/Apollo13Audio/405-AAA_TRACK-1.mp3",
+    "localReviewAsset": "assets/audio/405-AAA_TRACK-1_denoised.mp3",
+    "format": "MP3",
+    "role": "Apollo 13 public-affairs mission commentary candidate"
+  },
+  "transcript": {
+    "source": "AS13_PAO_djvu.txt",
+    "localReviewAsset": "research/archive-transcripts/AS13_PAO_djvu.txt"
+  },
+  "clockTransform": {
+    "formula": "GET seconds = recording elapsed seconds - 5467",
+    "recordingOffset": "01:31:07",
+    "meaning": "Recording elapsed 01:31:07 is launch GET 00:00:00. Negative GET is countdown."
+  },
+  "anchors": [
+    {
+      "recordingElapsed": "01:31:07",
+      "get": "00:00:00",
+      "transcriptLine": 526,
+      "match": "Countdown reaches zero; commit and liftoff."
+    },
+    {
+      "recordingElapsed": "06:16:21",
+      "getCalculated": "04:45:14",
+      "transcriptLine": 3277,
+      "match": "Ken Mattingly press-conference sign-off at 4 hours, 45 minutes.",
+      "precision": "Transcript announcement is rounded to the minute; calculated offset differs by 14 seconds."
+    }
+  ],
+  "status": "two-anchor aligned to PAO commentary; ready for phrase-level cue review before runtime playback"
+}

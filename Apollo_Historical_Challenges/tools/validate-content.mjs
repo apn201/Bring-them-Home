@@ -8,4 +8,12 @@ if (historicalDraft.release !== false) throw new Error('Historical research draf
 const audioCatalog = JSON.parse(await readFile('content/evidence/apollo13-audio-catalog.json', 'utf8'));
 if (audioCatalog.rights !== 'Public Domain Mark 1.0') throw new Error('Apollo archive rights marker must be retained.');
 if (!audioCatalog.transcripts.some((source) => source.id === 'as13-tec' && source.role === 'technical-air-to-ground')) throw new Error('Technical air-to-ground transcript is required for mission-event verification.');
+const paoAlignment = JSON.parse(await readFile('content/evidence/405-aaa-track-1-pao-alignment.json', 'utf8'));
+if (paoAlignment.release !== false) throw new Error('Audio alignment evidence must remain out of the runtime bundle until phrase-level review is complete.');
+if (paoAlignment.clockTransform?.recordingOffset !== '01:31:07') throw new Error('PAO alignment must retain the verified launch offset.');
+if (paoAlignment.anchors?.[1]?.recordingElapsed !== '06:16:21') throw new Error('PAO alignment must retain the end-of-recording anchor.');
+const aquariusAudioCandidates = JSON.parse(await readFile('content/evidence/aquarius-audio-candidate-map.json', 'utf8'));
+if (aquariusAudioCandidates.release !== false) throw new Error('Aquarius audio candidates must not be released before a spoken-content match.');
+if (aquariusAudioCandidates.aquariusCoarseAlignment?.archiveTape !== '415-AAA') throw new Error('Aquarius coarse alignment must stay mapped to its later tape window.');
+if (aquariusAudioCandidates.aquariusCoarseAlignment?.transcriptLine !== 25146) throw new Error('Aquarius candidate map must retain the TEC source line.');
 console.log(`valid content: ${scenario.id}; historical draft held at ${historicalDraft.fidelity}; archive catalog ${audioCatalog.id}`);
