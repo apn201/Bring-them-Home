@@ -9,7 +9,7 @@ export interface DskyState {
   lamps: ReadonlySet<string>;
 }
 
-const digitMap: Readonly<Record<number, string>> = { 0: ' ', 3: '1', 13: '4', 19: '7', 21: '0', 25: '2', 27: '3', 28: '6', 29: '8', 30: '5', 31: '9' };
+const digitMap: Readonly<Record<number, string>> = { 0: ' ', 3: '1', 15: '4', 19: '7', 21: '0', 25: '2', 27: '3', 28: '6', 29: '8', 30: '5', 31: '9' };
 const lampNames = ['UPLINK ACTY', 'TEMP', 'NO ATT', 'GIMBAL LOCK', 'STBY', 'PROG', 'KEY REL', 'RESTART', 'OPR ERR', 'TRACKER', 'PRIO DISP', 'ALT', 'NO DAP', 'VEL'] as const;
 
 export class DskyDecoder {

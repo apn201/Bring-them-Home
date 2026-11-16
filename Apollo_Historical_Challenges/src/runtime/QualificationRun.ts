@@ -3,40 +3,34 @@ import { ScenarioRuntime, type ScenarioDefinition, type ScenarioSnapshot } from 
 
 export interface QualificationSnapshot extends ScenarioSnapshot {}
 
-const number = (key: AgcKey): boolean => /^[0-9]$/.test(key);
 const named = (target: AgcKey) => (key: AgcKey): boolean => key === target;
 
 export const qualificationDefinition: ScenarioDefinition = {
-  initial: 'awaiting-number',
+  initial: 'awaiting-verb',
   phases: {
-    'awaiting-number': {
-      id: 'awaiting-number', completedSteps: 0, message: 'Awaiting a numeric key · 0/3 complete',
-      transitions: [{ accepts: number, next: 'awaiting-verb', message: 'Key path confirmed · press VERB · 1/3 complete' }],
-      unexpected: { outcome: 'correctable-error', message: 'Use any number to verify the key path.' },
-    },
     'awaiting-verb': {
-      id: 'awaiting-verb', completedSteps: 1, message: 'Key path confirmed · press VERB · 1/3 complete',
-      transitions: [{ accepts: named('VERB'), next: 'awaiting-3', message: 'Verb entry open · type 3 · 2/3 complete' }],
-      unexpected: { outcome: 'correctable-error', message: 'The key path is live. Press VERB to open the entry.' },
+      id: 'awaiting-verb', completedSteps: 0, message: 'Start the real DSKY light test · press VERB · 0/3 complete',
+      transitions: [{ accepts: named('VERB'), next: 'awaiting-3', message: 'Verb entry open · type 3 · 1/3 complete' }],
+      unexpected: { outcome: 'correctable-error', message: 'The exercise begins with VERB, not a free numeric key.' },
     },
     'awaiting-3': {
-      id: 'awaiting-3', completedSteps: 2, message: 'Verb entry open · type 3 · 2/3 complete',
-      transitions: [{ accepts: named('3'), next: 'awaiting-5', message: 'Verb entry open · type 5 · 2/3 complete' }],
+      id: 'awaiting-3', completedSteps: 1, message: 'Verb entry open · type 3 · 1/3 complete',
+      transitions: [{ accepts: named('3'), next: 'awaiting-5', message: 'Verb entry open · type 5 · 1/3 complete' }],
       unexpected: { outcome: 'correctable-error', next: 'clear-entry', message: 'That is not V35. Press CLR, then reopen VERB.' },
     },
     'awaiting-5': {
-      id: 'awaiting-5', completedSteps: 2, message: 'Verb entry open · type 5 · 2/3 complete',
-      transitions: [{ accepts: named('5'), next: 'awaiting-entr', message: 'Verb 35 entered · press ENTR · 2/3 complete' }],
+      id: 'awaiting-5', completedSteps: 1, message: 'Verb entry open · type 5 · 1/3 complete',
+      transitions: [{ accepts: named('5'), next: 'awaiting-entr', message: 'V35 selected · press ENTR · 2/3 complete' }],
       unexpected: { outcome: 'correctable-error', next: 'clear-entry', message: 'Correctable entry error. Press CLR, then reopen VERB.' },
     },
     'awaiting-entr': {
-      id: 'awaiting-entr', completedSteps: 2, message: 'Verb 35 entered · press ENTR · 2/3 complete',
-      transitions: [{ accepts: named('ENTR'), next: 'complete', outcome: 'complete', message: 'Qualification complete · 3/3 complete' }],
-      unexpected: { outcome: 'correctable-error', message: 'V35 is ready. Press ENTR to run the real DSKY light test.' },
+      id: 'awaiting-entr', completedSteps: 2, message: 'V35 selected · press ENTR · 2/3 complete',
+      transitions: [{ accepts: named('ENTR'), next: 'complete', outcome: 'complete', message: 'V35 sent · watch the DSKY illuminate · 3/3 complete' }],
+      unexpected: { outcome: 'correctable-error', message: 'V35 is ready. Press ENTR and verify the visible light test.' },
     },
     'clear-entry': {
-      id: 'clear-entry', completedSteps: 1, message: 'Entry needs correction · press CLR',
-      transitions: [{ accepts: named('CLR'), next: 'awaiting-verb', message: 'Entry cleared · press VERB to begin again · 1/3 complete' }],
+      id: 'clear-entry', completedSteps: 0, message: 'Entry needs correction · press CLR',
+      transitions: [{ accepts: named('CLR'), next: 'awaiting-verb', message: 'Entry cleared · press VERB to begin again · 0/3 complete' }],
       unexpected: { outcome: 'correctable-error', message: 'Correct the entry with CLR before continuing.' },
     },
     complete: {

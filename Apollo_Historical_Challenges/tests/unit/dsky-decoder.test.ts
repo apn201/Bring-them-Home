@@ -16,4 +16,10 @@ describe('DskyDecoder', () => {
     expect(decoder.snapshot().signs[0]).toBe('−');
     expect(decoder.snapshot().registers[0]).toBe('9  35');
   });
+
+  it('uses the hardware relay code for digit four rather than showing an unknown glyph', () => {
+    const decoder = new DskyDecoder();
+    decoder.apply(0o10, (10 << 11) | (15 << 5) | 3);
+    expect(decoder.snapshot().verb).toBe('41');
+  });
 });
