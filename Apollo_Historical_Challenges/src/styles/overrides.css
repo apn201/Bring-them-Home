@@ -1,0 +1,2 @@
+.checklist li{grid-template-columns:28px 1fr;gap:7px;min-height:43px;padding:10px 0;font-size:13px}.checklist b{font-size:10px}.qualification-status{font-size:10px}
+@media(max-height:720px){.checklist li{min-height:29px;padding:5px 0;font-size:10px}.checklist b,.qualification-status{font-size:8px}}
