@@ -3,6 +3,7 @@ import { keyCodes, type AgcKey } from './agc/KeyCodec';
 import { WorkerClient } from './agc/WorkerClient';
 import type { WorkerResponse } from './agc/protocol';
 import { MissionClock } from './runtime/MissionClock';
+import { AquariusCoarseRun } from './runtime/AquariusCoarseRun';
 import { sampleBenchTelemetry } from './runtime/BenchTelemetry';
 import { QualificationRun } from './runtime/QualificationRun';
 import { AQUARIUS_V41_N20_CUE, TranscriptCuePlayer } from './runtime/TranscriptCuePlayer';
@@ -52,6 +53,10 @@ const missionReview = document.createElement('section');
 missionReview.className = 'mission-review';
 missionReview.setAttribute('aria-labelledby', 'mission-review-title');
 missionReview.innerHTML = `<div><p class="eyebrow">02 / EVIDENCE STATION</p><h2 id="mission-review-title">Aquarius: preserve the platform</h2><p>The historical mission is still gated. One reviewed cue is ready: V41 N20 and the first coarse angle at GET 58:02:26.</p></div><div class="mission-cue"><span>VERIFIED CUE</span><strong>V41 N20 · +30243</strong><small>414-AAA Track 1 · 05:07:40<br>PAO line 14230 / TEC line 25146</small><div><button class="outline" id="play-aquarius-cue">Play reviewed cue</button><button class="quiet" id="stop-aquarius-cue">Stop</button></div><p id="aquarius-audio-status" aria-live="polite">Ready for operator-initiated review.</p></div>`;
+const missionProcedure = document.createElement('section');
+missionProcedure.className = 'mission-procedure';
+missionProcedure.innerHTML = `<div><p class="eyebrow">EVIDENCE-GATED REHEARSAL</p><h3>Coarse alignment command set</h3><p>Runs V41 N20 and the reviewed values against the live LM131R1 ROM. The command and audio are historical evidence; the boot state is not an Apollo 13 spacecraft reconstruction.</p></div><div><ol id="aquarius-steps"><li class="active"><b>01</b><span>Enter V41 N20</span></li><li><b>02</b><span>Enter +30243</span></li><li><b>03</b><span>Enter +34778</span></li><li><b>04</b><span>Enter +00813</span></li></ol><button class="outline" id="start-aquarius-rehearsal">Stage fresh ROM rehearsal</button><p id="aquarius-rehearsal-status" aria-live="polite">Audio cue reviewed · rehearsal not staged.</p></div>`;
+missionReview.append(missionProcedure);
 document.querySelector('.chapters')?.before(missionReview);
 const client = new WorkerClient();
 const elements = {
@@ -60,10 +65,18 @@ const elements = {
   screenReader: byId('screen-reader-output'), pause: byId<HTMLButtonElement>('pause-button'),
   restart: byId<HTMLButtonElement>('restart-button'), training: byId('training-list'),
   qualificationStatus: byId('qualification-status'), completion: byId('qualification-complete'), debrief: byId('training-debrief'), coreWords: byId('core-words'), trace: byId('trace-log'), tryThis: byId<HTMLElement>('try-this'),
+  aquariusSteps: byId('aquarius-steps'), aquariusStatus: byId('aquarius-rehearsal-status'),
   telemetryTime: byId('telemetry-time'), telemetryAlt: byId('telemetry-alt'), telemetryHdot: byId('telemetry-hdot'), telemetryVel: byId('telemetry-vel'), telemetryProp: byId('telemetry-prop'), telemetryDps: byId('telemetry-dps'), telemetryCycles: byId('telemetry-cycles'), attitudePitch: byId('attitude-pitch'), attitudeRoll: byId('attitude-roll'), attitudeYaw: byId('attitude-yaw'), attitudeVehicle: bySvgId('attitude-vehicle'),
 };
+const controlTitle = (() => {
+  const heading = document.querySelector<HTMLHeadingElement>('.control-bay h3');
+  if (!heading) throw new Error('Missing control-bay heading');
+  return heading;
+})();
+const qualificationListMarkup = elements.training.innerHTML;
 let paused = false;
 const qualification = new QualificationRun();
+const aquarius = new AquariusCoarseRun();
 const missionClock = new MissionClock();
 const traceEntries: string[] = [];
 const cuePlayer = new TranscriptCuePlayer();
@@ -73,12 +86,13 @@ client.addEventListener('error', (event) => setFailure((event as CustomEvent<str
 dsky.addEventListener('dsky-key', (event) => { const { key, down } = (event as CustomEvent<{ key: AgcKey; down: boolean }>).detail; sendKey(key, down); });
 
 elements.pause.addEventListener('click', () => setPaused(!paused));
-elements.restart.addEventListener('click', () => { missionClock.reset(); qualification.reset(); updateTraining(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; appendTrace('SYSTEM  fresh instance requested'); client.restart(); elements.computer.textContent = 'Rebuilding exact boot state'; });
+elements.restart.addEventListener('click', () => { missionClock.reset(); qualification.reset(); aquarius.reset(); updateTraining(); updateAquarius(); dsky.reset(); elements.channelTen.textContent = 'AWAITING RELAY'; traceEntries.length = 0; appendTrace('SYSTEM  fresh instance requested'); client.restart(); elements.computer.textContent = 'Rebuilding exact boot state'; });
 byId<HTMLButtonElement>('focus-dsky').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('launch-training').addEventListener('click', () => document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('about-button').addEventListener('click', () => document.querySelector('#fidelity')?.scrollIntoView({ behavior: 'smooth' }));
 byId<HTMLButtonElement>('play-aquarius-cue').addEventListener('click', () => cuePlayer.preview(AQUARIUS_V41_N20_CUE, (message) => { byId('aquarius-audio-status').textContent = message; }));
 byId<HTMLButtonElement>('stop-aquarius-cue').addEventListener('click', () => { cuePlayer.stop(); byId('aquarius-audio-status').textContent = 'Reviewed cue stopped.'; });
+byId<HTMLButtonElement>('start-aquarius-rehearsal').addEventListener('click', () => { missionClock.reset(); aquarius.start(); stageAquariusConsole(); dsky.reset(); traceEntries.length = 0; appendTrace('MISSION  Aquarius V41 N20 rehearsal staged'); client.restart(); elements.computer.textContent = 'Aquarius evidence rehearsal staged'; updateAquarius(); document.querySelector('.console-section')?.scrollIntoView({ behavior: 'smooth' }); });
 document.querySelectorAll<HTMLButtonElement>('[data-experiment]').forEach((button) => button.addEventListener('click', () => runExperiment(button.dataset.experiment)));
 
 window.addEventListener('keydown', (event) => {
@@ -126,11 +140,35 @@ function appendTrace(entry: string): void {
 }
 
 function recordQualification(key: AgcKey): void {
+  if (aquarius.isRunning()) { aquarius.accept(key, missionClock.snapshot().cycle); updateAquarius(); return; }
   qualification.accept(key, missionClock.snapshot().cycle);
   updateTraining();
 }
 
+function updateAquarius(): void {
+  const snapshot = aquarius.snapshot();
+  const items = [...elements.aquariusSteps.querySelectorAll('li')];
+  items.forEach((item, index) => { item.classList.toggle('done', index < snapshot.completedSteps); item.classList.toggle('active', aquarius.isRunning() && index === snapshot.completedSteps && !snapshot.complete); });
+  if (!aquarius.isRunning()) { elements.aquariusStatus.textContent = 'Audio cue reviewed · rehearsal not staged.'; return; }
+  elements.aquariusStatus.textContent = snapshot.message;
+  if (snapshot.complete) { elements.computer.textContent = 'V41 N20 evidence rehearsal complete'; elements.screenReader.textContent = 'Aquarius evidence rehearsal complete.'; }
+}
+
+function stageAquariusConsole(): void {
+  controlTitle.textContent = 'Aquarius rehearsal';
+  elements.training.dataset.mode = 'aquarius';
+  elements.training.innerHTML = '<li class="active"><b>01</b><span>Enter <strong>V41 N20</strong>.</span></li><li><b>02</b><span>Enter <strong>+30243</strong>.</span></li><li><b>03</b><span>Enter <strong>+34778</strong>, then <strong>+00813</strong>.</span></li>';
+  elements.qualificationStatus.textContent = 'Evidence-gated rehearsal · reviewed command set · 0/4 complete';
+  elements.completion.hidden = true;
+  elements.tryThis.hidden = true;
+}
+
 function updateTraining(): void {
+  if (elements.training.dataset.mode === 'aquarius') {
+    elements.training.innerHTML = qualificationListMarkup;
+    delete elements.training.dataset.mode;
+  }
+  controlTitle.textContent = 'Qualification run';
   const items = [...elements.training.querySelectorAll('li')];
   const snapshot = qualification.snapshot();
   items.forEach((item, index) => { item.classList.toggle('done', index < snapshot.completedSteps); item.classList.toggle('active', index === snapshot.completedSteps && !snapshot.complete); });
