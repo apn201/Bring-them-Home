@@ -18,7 +18,7 @@ app.innerHTML = `
     </header>
     <section id="top" class="hero">
       <div class="hero-copy"><p class="eyebrow">A procedure game collection</p><h1>Keep the machine<br><i>honest.</i></h1><p class="lede">Take the keyboard of an Apollo guidance computer. Read the panel, work the procedure, and accept what the original software tells you.</p><div class="hero-actions"><button class="primary" id="focus-dsky">Enter the console <span>↓</span></button><button class="quiet" id="about-button">Fidelity notes</button></div></div>
-      <aside class="brief-card"><p class="eyebrow">NOW LOADED</p><h2>DSKY <span>QUALIFICATION</span></h2><div class="rule"></div><p>Training bench · Real Apollo 13 LM software · No historical claim</p><span class="ready-dot"><i></i> Browser computer online</span></aside>
+      <aside class="brief-card"><p class="eyebrow">NOW LOADED</p><h2><span class="brief-dsky">DSKY</span><span class="brief-qualification">QUALIFICATION</span></h2><div class="rule"></div><p>Training bench · Real Apollo 13 LM software · No historical claim</p><span class="ready-dot"><i></i> Browser computer online</span></aside>
     </section>
     <section class="console-section" aria-labelledby="console-title">
       <div class="section-label"><span>01 / LIVE CONSOLE</span><h2 id="console-title">Lunar module guidance computer</h2><p>Output comes from the Apollo 13 LM131R1 ROM in a dedicated worker. This is not a simulated display.</p></div>
@@ -28,13 +28,13 @@ app.innerHTML = `
           <div class="status-line"><span class="pulse"></span><span id="computer-state">Booting original flight software</span></div>
           <h3>Qualification run</h3>
           <ol class="checklist" id="training-list"><li class="active"><b>01</b><span>Press any number to verify the key path.</span></li><li><b>02</b><span>Press <strong>VERB</strong> to begin a verb entry.</span></li><li><b>03</b><span>Enter <strong>35</strong>, then press <strong>ENTR</strong>.</span></li></ol><p class="qualification-status" id="qualification-status">Awaiting a numeric key · 0/3 complete</p><div class="qualification-complete" id="qualification-complete" hidden><strong>QUALIFIED</strong><span>Input route verified. The computer remains live for practice.</span></div>
-          <section class="try-this" id="try-this" hidden aria-labelledby="try-title"><p class="eyebrow" id="try-title">TRY THE LIVE ROM</p><p>These are real LM131R1 verb/noun paths. They are available after qualification.</p><div class="experiment-grid"><button data-experiment="lights"><b>V35 ENTR</b><span>Test DSKY lights</span></button><button data-experiment="angles"><b>V06 N20 ENTR</b><span>Display ICDU angles</span></button><button data-experiment="monitor"><b>V16 N20 ENTR</b><span>Monitor ICDU angles</span></button></div></section>
+          <section class="try-this" id="try-this" hidden aria-labelledby="try-title"><p class="eyebrow" id="try-title">TRY THE LIVE ROM</p><p>These are real LM131R1 verb/noun paths. The boot state has zero ICDU angles; load the source-checked training attitude first to see a non-zero display.</p><div class="experiment-grid"><button data-experiment="coarse"><b>V41 N20</b><span>Load 302.43 / 347.78 / 008.13°</span></button><button data-experiment="angles"><b>V06 N20 ENTR</b><span>Display ICDU angles</span></button><button data-experiment="monitor"><b>V16 N20 ENTR</b><span>Monitor ICDU angles</span></button><button data-experiment="lights"><b>V35 ENTR</b><span>Test DSKY lights</span></button></div></section>
           <div class="control-actions"><button class="outline" id="pause-button">Pause</button><button class="outline" id="restart-button">Exact restart</button></div><details class="training-debrief" open><summary>Training debrief</summary><p id="training-debrief">No operator inputs recorded.</p></details>
           <dl class="telemetry"><div><dt>ENGINE</dt><dd id="engine-version">—</dd></div><div><dt>ERASABLE HASH</dt><dd id="erasable-hash">—</dd></div><div><dt>LAST CHANNEL 010</dt><dd id="channel-ten">AWAITING RELAY</dd></div></dl><details class="debug-stream" open><summary>Live computer trace <span>real worker data</span></summary><div class="core-words" id="core-words">ERASABLE 0000–0007 · —</div><ol id="trace-log" aria-live="polite"></ol></details>
           <p class="checkpoint-note">This is an authored input drill running the Apollo 13 LM131R1 ROM; it is not a historical mission checkpoint. Restart builds a fresh engine and replays the immutable boot sequence.</p>
         </aside>
       </div>
-      <section class="flight-monitor" aria-labelledby="flight-monitor-title"><div class="monitor-head"><div><span>03 / INSTRUMENT BUS</span><h3 id="flight-monitor-title">Training flight dynamics</h3></div><p>Worker-cycle fed · Bench vector only · Not Apollo flight telemetry</p></div><div class="monitor-grid"><article class="attitude-card"><svg viewBox="0 0 120 120" aria-label="Lunar module attitude silhouette"><circle cx="60" cy="60" r="51"/><path d="M60 4v15M60 101v15M4 60h15M101 60h15"/><g id="attitude-vehicle"><path d="M60 25 75 47 69 75H51L45 47Z"/><path d="M45 47 31 62M75 47 89 62M51 75 40 91M69 75 80 91"/><path d="M42 92h36"/></g></svg><div class="attitude-readout"><span>PITCH <b id="attitude-pitch">+00.0°</b></span><span>ROLL <b id="attitude-roll">+00.0°</b></span><span>YAW <b id="attitude-yaw">+00.0°</b></span></div></article><article class="vitals-card"><dl><div><dt>T+ CPU</dt><dd id="telemetry-time">00:00:00</dd></div><div><dt>ALT <small>bench</small></dt><dd id="telemetry-alt">014.20 km</dd></div><div><dt>HDOT <small>bench</small></dt><dd id="telemetry-hdot">+000.0 m/s</dd></div><div><dt>VEL <small>bench</small></dt><dd id="telemetry-vel">0000 m/s</dd></div><div><dt>PROP <small>bench</small></dt><dd id="telemetry-prop">82.4%</dd></div><div><dt>DPS <small>bench</small></dt><dd id="telemetry-dps">0%</dd></div><div><dt>AGC CYCLES</dt><dd id="telemetry-cycles">00000000</dd></div><div><dt>MODE</dt><dd>LM131R1 / P00</dd></div></dl></article></div></section>
+      <section class="flight-monitor" aria-labelledby="flight-monitor-title"><div class="monitor-head"><div><span>03 / INSTRUMENT BUS</span><h3 id="flight-monitor-title">Training flight dynamics</h3></div><p>Worker-cycle fed · Bench vector only · Not Apollo flight telemetry</p></div><div class="monitor-grid"><article class="attitude-card"><svg viewBox="-82 -76 164 152" aria-label="Lunar module attitude wireframe"><g class="attitude-reference"><path d="M-70 0H70M0-62V62"/><circle cx="0" cy="0" r="56"/></g><g id="attitude-vehicle"><path class="plume" d="M-7 35H7L15 61 0 54 -15 61Z"/><path d="M-5 24H5L9 35H-9Z"/><path d="M-26 8 -49 38M26 8 49 38M-49 39v11M49 39v11M-49 38h-10M49 38h10M0 11v33"/><path d="M-26 4H26V22H-26ZM-13 4V22M13 4V22"/><path d="M-21-20 -13-31H13L21-20V4H-21Z"/><path d="M-17-18H-3V-5H-17ZM3-18H17V-5H3ZM-8-31V-43H8V-31"/><path d="M-18-27 -39-42M18-27 39-42M-34-44h-10M34-44h10"/><path d="M-8 4 8 4M-20 28H20"/></g></svg><div class="attitude-readout"><span>FDAI / PITCH <b id="attitude-pitch">+00.0°</b></span><span>FDAI / ROLL <b id="attitude-roll">+00.0°</b></span><span>FDAI / YAW <b id="attitude-yaw">+00.0°</b></span></div></article><article class="vitals-card"><dl><div><dt>T+ CPU</dt><dd id="telemetry-time">00:00:00</dd></div><div><dt>ALT <small>bench</small></dt><dd id="telemetry-alt">014.20 km</dd></div><div><dt>HDOT <small>bench</small></dt><dd id="telemetry-hdot">+000.0 m/s</dd></div><div><dt>VEL <small>bench</small></dt><dd id="telemetry-vel">0000 m/s</dd></div><div><dt>PROP <small>bench</small></dt><dd id="telemetry-prop">82.4%</dd></div><div><dt>DPS <small>bench</small></dt><dd id="telemetry-dps">0%</dd></div><div><dt>AGC CYCLES</dt><dd id="telemetry-cycles">00000000</dd></div><div><dt>MODE</dt><dd>LM131R1 / P00</dd></div></dl></article></div></section>
     </section>
     <section class="chapters" aria-labelledby="chapters-title"><div class="section-label"><span>02 / EPISODES</span><h2 id="chapters-title">The first collection</h2><p>Short missions, not a fictional free-flight simulator.</p></div><div class="chapter-grid">
       <article class="chapter available"><span class="chapter-no">01</span><p class="eyebrow">TRAINING · AVAILABLE</p><h3>DSKY Qualification</h3><p>Learn the instrument through real computer responses. This is a modern training exercise, not a reconstructed Apollo event.</p><button class="text-button" id="launch-training">Load console <span>→</span></button></article>
@@ -134,14 +134,22 @@ function updateTraining(): void {
 }
 
 function runExperiment(id: string | undefined): void {
-  const commands: Record<string, readonly AgcKey[]> = {
-    lights: ['VERB', '3', '5', 'ENTR'],
-    angles: ['VERB', '0', '6', 'NOUN', '2', '0', 'ENTR'],
-    monitor: ['VERB', '1', '6', 'NOUN', '2', '0', 'ENTR'],
+  const commands: Record<string, readonly { key: AgcKey; wait?: number }[]> = {
+    lights: ['VERB', '3', '5', 'ENTR'].map((key) => ({ key: key as AgcKey })),
+    angles: ['VERB', '0', '6', 'NOUN', '2', '0', 'ENTR'].map((key) => ({ key: key as AgcKey })),
+    monitor: ['VERB', '1', '6', 'NOUN', '2', '0', 'ENTR'].map((key) => ({ key: key as AgcKey })),
+    coarse: [
+      ...['VERB', '4', '1', 'NOUN', '2', '0'].map((key) => ({ key: key as AgcKey })),
+      { key: 'ENTR', wait: 650 },
+      ...['PLUS', '3', '0', '2', '4', '3', 'ENTR'].map((key) => ({ key: key as AgcKey })),
+      ...['PLUS', '3', '4', '7', '7', '8', 'ENTR'].map((key) => ({ key: key as AgcKey })),
+      ...['PLUS', '0', '0', '8', '1', '3', 'ENTR'].map((key) => ({ key: key as AgcKey })),
+    ],
   };
-  const keys = id ? commands[id] : undefined;
-  if (!keys) return;
-  keys.forEach((key, index) => window.setTimeout(() => sendKey(key), index * 145));
+  const steps = id ? commands[id] : undefined;
+  if (!steps) return;
+  let offset = 0;
+  steps.forEach((step) => { window.setTimeout(() => sendKey(step.key), offset); offset += step.wait ?? 145; });
 }
 
 function updateTelemetry(cycle: number): void {
@@ -156,7 +164,7 @@ function updateTelemetry(cycle: number): void {
   elements.attitudePitch.textContent = formatAngle(sample.pitchDeg);
   elements.attitudeRoll.textContent = formatAngle(sample.rollDeg);
   elements.attitudeYaw.textContent = formatAngle(sample.yawDeg);
-  elements.attitudeVehicle.setAttribute('transform', `rotate(${sample.rollDeg.toFixed(2)} 60 60) translate(${sample.yawDeg.toFixed(2)} ${(-sample.pitchDeg).toFixed(2)})`);
+  elements.attitudeVehicle.setAttribute('transform', `rotate(${sample.rollDeg.toFixed(2)}) translate(${sample.yawDeg.toFixed(2)} ${(-sample.pitchDeg).toFixed(2)})`);
 }
 
 function formatAngle(value: number): string { return `${value >= 0 ? '+' : ''}${value.toFixed(1).padStart(4, '0')}°`; }
