@@ -11,7 +11,7 @@ and [CAMPAIGN_SOURCES.md](CAMPAIGN_SOURCES.md) for primary sources and model lim
 
 ## Run
 
-Node 22 or newer:
+Node 22.12 or newer (Node 24 LTS recommended):
 
 ```sh
 npm install

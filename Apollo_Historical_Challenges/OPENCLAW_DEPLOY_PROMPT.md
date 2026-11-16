@@ -15,7 +15,7 @@ Application directory: `Apollo_Historical_Challenges`.
 
 Use the commit supplied with this request. If I have not supplied one, fetch
 `origin/main`, record its full SHA, and build that exact checkout. Use an isolated
-build directory and Node **22 or newer**. Run:
+build directory and Node **22.12 or newer** (prefer Node 24 LTS). Run:
 
 ```sh
 npm ci
