@@ -44,7 +44,7 @@
         "state": "two-anchor mapped as public-affairs commentary; not the Aquarius technical loop"
       }
     ],
-    "nextReview": "415-AAA is now phrase-identified as beginning at PAO 58:46 and later carrying TEC audio, but it begins after Aquarius V41 N20 at 58:02:26. Locate the preceding source transfer for that exchange, then establish its spoken TEC anchor before playback.",
+    "nextReview": "Review 414-AAA Track 1 at 05:03:00–05:09:00. The window is derived from a TEC anchor and reaches Aquarius V41 N20 at 05:03:19; confirm the spoken command before playback.",
     "aquariusCandidateMap": "content/evidence/aquarius-audio-candidate-map.json"
   }
 }

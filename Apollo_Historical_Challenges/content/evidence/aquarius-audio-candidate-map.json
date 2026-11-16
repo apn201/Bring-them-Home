@@ -16,7 +16,19 @@
     "transcript": "AS13_TEC_djvu.txt",
     "transcriptLine": 25146,
     "missionTime": "02:10:02:26",
-    "status": "audio source not located: this event precedes the verified 415-AAA start by 00:43:34"
+    "probableTransfer": "414-AAA_TRACK-1.mp3",
+    "calculation": {
+      "recordingAnchor": {
+        "recordingElapsed": "00:24:28",
+        "transcriptLine": 19993,
+        "nearestTranscriptTime": "02:05:23:35",
+        "match": "13, Houston. Go ahead."
+      },
+      "missionDeltaToEvent": "04:38:51",
+      "calculatedSeek": "05:03:19",
+      "reviewWindow": "05:03:00–05:09:00"
+    },
+    "status": "time-derived candidate only; confirm V41 N20 spoken content before runtime playback"
   },
   "laterVerifiedTransfer": {
     "transfer": "415-AAA",
