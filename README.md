@@ -1,5 +1,8 @@
 # Bring Them Home
 
+**Work in progress:** the game is not finished, but you can
+[play the current test build at helppox.com/apollo13](https://helppox.com/apollo13/).
+
 An HTML5 Apollo 13 cockpit game. Operate the guidance computer, copy Houston's
 instructions, consult flight manuals, and control the spacecraft through the
 journey home. The DSKY runs original LM131R1 or reconstructed Manche72R3
