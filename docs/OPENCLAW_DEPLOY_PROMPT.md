@@ -10,8 +10,10 @@ server. This is a static browser game with a Web Worker, WebAssembly, two AGC
 ROMs, images and one original Apollo audio clip. There is no backend, database,
 Vite development server or persistent Node service to run.
 
-Repository: https://github.com/apn201/Space-pilot.git
-Application directory: `Apollo_Historical_Challenges`.
+Repository: https://github.com/apn201/Bring-them-Home.git
+Application directory: the repository root. `package.json`, `src/`, `public/`,
+and this project's README are at the top level. Do not enter the former
+`Apollo_Historical_Challenges` subdirectory; it no longer contains the app.
 
 Use the commit supplied with this request. If I have not supplied one, fetch
 `origin/main`, record its full SHA, and build that exact checkout. Use an isolated

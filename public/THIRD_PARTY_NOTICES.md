@@ -44,6 +44,6 @@ GPL-2.0 text is included as `COPYING-GPL-2.0.txt`. The corresponding emulator
 source is pinned at
 https://github.com/michaelfranzl/virtualagc/tree/ddc65e7bed41f1301921b934fcbaaee93db99dda/yaAGC
 and is also retained in this project's source repository:
-https://github.com/apn201/Space-pilot/tree/main/Apollo_Historical_Challenges/assets/software/webAGC-engine-source .
+https://github.com/apn201/Bring-them-Home/tree/main/assets/software/webAGC-engine-source .
 Original ROM source/provenance is retained under `assets/software/virtualagc`.
 This notice does not characterize the entire application as public domain.

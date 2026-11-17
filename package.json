@@ -1,9 +1,13 @@
 {
-  "name": "apollo-historical-challenges",
+  "name": "bring-them-home",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "A browser collection of historically bounded Apollo procedure games.",
+  "description": "An Apollo 13 HTML5 cockpit game running original guidance-computer software.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/apn201/Bring-them-Home.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

@@ -1,20 +1,26 @@
 # Generated browser output and installed packages
-Apollo_Historical_Challenges/node_modules/
-Apollo_Historical_Challenges/dist/
-Apollo_Historical_Challenges/release/
-Apollo_Historical_Challenges/*.tsbuildinfo
+node_modules/
+/dist/
+/release/
+*.tsbuildinfo
 
 # Local-only research acquisitions. Their source documents, audio, and historical
 # rights annotations are useful during development but are neither application
 # runtime assets nor cleared for redistribution as one bundle.
-Apollo_Historical_Challenges/assets/documents/
-Apollo_Historical_Challenges/assets/audio/
-Apollo_Historical_Challenges/research/
+/assets/documents/
+/assets/audio/
+/research/
 
 # Retained locally for source investigation; the shipped browser runtime does
 # not use this upstream demo or its separate font/demo dependencies.
-Apollo_Historical_Challenges/assets/software/webAGC/demo/
+/assets/software/webAGC/demo/
 
 # Local editor and operating-system noise
 .DS_Store
 Thumbs.db
+.env
+.env.*
+!.env.example
+
+# An empty former application directory can remain while an old terminal holds it.
+/Apollo_Historical_Challenges/
